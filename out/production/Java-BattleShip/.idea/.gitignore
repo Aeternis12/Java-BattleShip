@@ -1,0 +1,14 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+
+
+# Ignore java class files
+*.class
+
+# Ignore intellij stuff
+/out/
+/build/
+*.iml
