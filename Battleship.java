@@ -7,6 +7,16 @@ public class Battleship extends JFrame {
     private static final int SIZE = 10;
     private static final int CELL_SIZE = 40;
 
+    private boolean playerOnesTurn = true;
+    private boolean turnLocked = false;
+
+    private JPanel board1;
+    private JPanel board2;
+
+    private JLabel turnLabel;
+    private Timer countdownTimer;
+    private int countdown = 3;
+
     public Battleship() {
         setTitle("Battleship");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -14,20 +24,23 @@ public class Battleship extends JFrame {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayout(1, 2, 40, 0));
 
-        JPanel board1 = createBoard(); // Player 1 clicks here
-        JPanel board2 = createBoard(); // Player 2 clicks here (turn based logic still needs to be setup)
-
+        board1 = createBoard(true); // Player 1 clicks here
+        board2 = createBoard(false); // Player 2 clicks here 
         mainPanel.add(board1);
         mainPanel.add(board2);
 
-        add(mainPanel);
+        turnLabel = new JLabel("Player 1's Turn", SwingConstants.CENTER);
+        turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
+
+        add(turnLabel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
 
         pack(); // Sizes window based on button sizes
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    private JPanel createBoard() {
+    private JPanel createBoard(boolean isLeftBoard) {
         JPanel board = new JPanel();
         board.setLayout(new GridLayout(SIZE, SIZE));
         board.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
@@ -43,8 +56,18 @@ public class Battleship extends JFrame {
             cell.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    if(!cell.getBackground().equals(Color.WHITE)) { //will need to be changed when we add ships
+
+                    if (turnLocked) return;
+
+                    // Player 1 can only click LEFT board
+                    if (playerOnesTurn && !isLeftBoard) return;
+
+                    // Player 2 can only click RIGHT board
+                    if (!playerOnesTurn && isLeftBoard) return;
+
+                    if(!cell.getBackground().equals(Color.WHITE)) {
                         cell.setBackground(Color.WHITE);
+                        endTurn();
                     }
                 }
             });
@@ -54,6 +77,49 @@ public class Battleship extends JFrame {
 
         return board;
     }
+
+    private void endTurn() {
+        turnLocked = true;
+        setBoardsEnabled(false);
+
+        countdown = 3;
+        turnLabel.setText("Next turn in: " + countdown);
+
+        countdownTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                countdown--;
+
+                if (countdown > 0) {
+                    turnLabel.setText("Next turn in: " + countdown);
+                }
+                else {
+                    countdownTimer.stop();
+                    playerOnesTurn = !playerOnesTurn;
+                    turnLocked = false;
+                    setBoardsEnabled(true);
+
+                    if (playerOnesTurn) {
+                        turnLabel.setText("Player 1's Turn");
+                    }
+                    else {
+                        turnLabel.setText("Player 2's Turn");
+                    }
+                }
+            }
+        });
+
+    countdownTimer.start();
+}
+
+private void setBoardsEnabled(boolean enabled) {
+    for (Component c : board1.getComponents()) {
+        c.setEnabled(enabled);
+    }
+    for (Component c : board2.getComponents()) {
+        c.setEnabled(enabled);
+    }
+}
 
     public static void main(String[] args) {
         new Battleship();
