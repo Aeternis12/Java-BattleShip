@@ -109,17 +109,17 @@ public class Battleship extends JFrame {
             }
         });
 
-    countdownTimer.start();
-}
+        countdownTimer.start();
+    }
 
-private void setBoardsEnabled(boolean enabled) {
-    for (Component c : board1.getComponents()) {
-        c.setEnabled(enabled);
+    private void setBoardsEnabled(boolean enabled) {
+        for (Component c : board1.getComponents()) {
+            c.setEnabled(enabled);
+        }
+        for (Component c : board2.getComponents()) {
+            c.setEnabled(enabled);
+        }
     }
-    for (Component c : board2.getComponents()) {
-        c.setEnabled(enabled);
-    }
-}
 
     public static void main(String[] args) {
         new Battleship();
