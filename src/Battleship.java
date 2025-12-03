@@ -30,10 +30,19 @@ public class Battleship extends JFrame {
         playerOneBoard = new Board(SIZE);
         playerTwoBoard = new Board(SIZE);
 
+        System.out.println("Boards Created");
+
+        playerOneBoard.placeShipsRandomly();
+        playerTwoBoard.placeShipsRandomly();
+
+        System.out.println("Ships Placed Randomly");
+
         playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
         playerTwoPanel = createBoard(false, playerTwoBoard); // Player 2 clicks here
         mainPanel.add(playerOnePanel);
         mainPanel.add(playerTwoPanel);
+
+        System.out.println("Panels Created");
 
         turnLabel = new JLabel("Player 1's Turn", SwingConstants.CENTER);
         turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
@@ -62,6 +71,10 @@ public class Battleship extends JFrame {
             cell.setOpaque(true);
             cell.setFocusPainted(false);
 
+            if (model.hasShip(row, col)) {
+                cell.setBackground(Color.GRAY);
+            }
+
             cell.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -74,10 +87,16 @@ public class Battleship extends JFrame {
                     // Player 2 can only click RIGHT board
                     if (!playerOnesTurn && cell.isLeftBoard) return;
 
-                    if(model.hasBeenShot(row,col)) return;
+                    if(model.hasShip(row,col)){
+                        model.markHit(row,col);
+                        cell.setBackground(Color.RED);
+                    }
 
-                    model.markMiss(row,col);
-                    cell.setBackground(Color.WHITE);
+                    else{
+                        model.markMiss(row,col);
+                        cell.setBackground(Color.WHITE);
+                    }
+
 
                     endTurn();
                 }
@@ -93,7 +112,7 @@ public class Battleship extends JFrame {
         turnLocked = true;
         setBoardsEnabled(false);
 
-        countdown = 3;
+        countdown = 1;
         turnLabel.setText("Next turn in: " + countdown);
 
         countdownTimer = new Timer(1000, new ActionListener() {

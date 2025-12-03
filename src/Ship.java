@@ -2,11 +2,9 @@ public abstract class Ship {
 
     protected final String name;
     protected final int length;
-
     protected int startRow = -1;
     protected int startCol = -1;
     protected boolean horizontal = true;
-
     protected int hitCount;
 
     public Ship(String name, int length) {
@@ -14,25 +12,24 @@ public abstract class Ship {
         this.length = length;
     }
 
-
     protected String  getName() {
         return name;
     }
     protected int getLength() {
         return length;
     }
-
     protected int getStartRow() {
         return startRow;
     }
     protected int getStartCol() {
         return startCol;
     }
-
     protected boolean isHorizontal() {
         return horizontal;
     }
 
+
+    //SHIP PLACEMENT
 
     public void placeShip(int row, int col, boolean horizontal) {
         this.startRow = row;
