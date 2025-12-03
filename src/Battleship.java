@@ -105,7 +105,32 @@ public class Battleship extends JFrame {
             board.add(cell);
         }
 
-        return board;
+
+        JPanel topPanel = new JPanel(new GridLayout(1, SIZE + 1));
+
+        JLabel corner = new JLabel(" ");
+        corner.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+        topPanel.add(corner);
+        for (int col = 0; col < SIZE; col++) {
+            JLabel label = new JLabel(String.valueOf((char)('A' + col)), SwingConstants.CENTER);
+            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+            topPanel.add(label);
+        }
+
+
+        JPanel leftPanel = new JPanel(new GridLayout(SIZE, 1));
+        for (int row = 0; row < SIZE; row++) {
+            JLabel label = new JLabel(String.valueOf(row + 1), SwingConstants.CENTER);
+            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+            leftPanel.add(label);
+        }
+
+        JPanel outerBoard = new JPanel(new BorderLayout());
+        outerBoard.add(topPanel, BorderLayout.NORTH);
+        outerBoard.add(leftPanel, BorderLayout.WEST);
+        outerBoard.add(board, BorderLayout.CENTER);
+
+        return outerBoard;
     }
 
     private void endTurn() {
