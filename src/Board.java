@@ -46,7 +46,6 @@ public class Board {
     public boolean canPlaceShip(int startRow, int startCol, int length, boolean horizontal) {
         int size = grid.length;
 
-        
         if(horizontal){
             if(startCol + length > size)
                 return false;
@@ -130,6 +129,24 @@ public class Board {
                 placed = placeShipOnBoard(ship, row, col, horizontal);
             }
         }
+    }
+
+    //helper for figuring out what kind of ship is at a square
+    public Ship getShipAt(int row, int col) {
+        for(Ship ship : ships) {
+            if (ship.occupiesGridLocation(row, col)) {
+                return ship;
+            }
+        }
+        return null;
+    }
+
+    public boolean allShipsSunk() {
+        for(Ship s : ships) {
+            if(!s.isSunk()) 
+                return false;
+        }
+        return true;
     }
 
 }

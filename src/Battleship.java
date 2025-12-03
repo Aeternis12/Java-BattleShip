@@ -92,10 +92,38 @@ public class Battleship extends JFrame {
                         model.markHit(row, col);
                         cell.setBackground(Color.RED);
 
-                        //keep your turn
+                        //what kind of ship got hit
+                        Ship hitShip = model.getShipAt(row, col);
+                        boolean wasHit = hitShip.shipHasBeenHit(row, col);
+
+                        if(model.allShipsSunk()){
+                            String winner = playerOnesTurn ? "Player 1" : "Player 2";
+
+                            int result = JOptionPane.showConfirmDialog(
+                                Battleship.this,
+                                winner + " Wins!\nPlay again?",
+                                "Game Over",
+                                JOptionPane.YES_NO_OPTION
+                            );
+
+                            if(result==JOptionPane.YES_OPTION) {
+                                restartGame();
+                            }
+                            else {
+                                System.exit(0);
+                            }
+                        }
+                        //keep turn
                         turnLabel.setText(
-                            (playerOnesTurn ? "Player 1" : "Player 2") + " Hit! Shoot Again!"
+                            " Hit! Shoot again!"
                         );
+
+                        //display message when ship gets sank
+                        if (hitShip.isSunk()) {
+                            turnLabel.setText(
+                                "You sank my " + hitShip.getName() + "!"
+                            );
+                        }
 
                         return;   
                     }
@@ -104,7 +132,6 @@ public class Battleship extends JFrame {
                     model.markMiss(row, col);
                     cell.setBackground(Color.WHITE);
 
-                    
                     endTurn();
                 }
             });
@@ -145,7 +172,7 @@ public class Battleship extends JFrame {
         setBoardsEnabled(false);
 
         countdown = 1;
-        turnLabel.setText("Next turn in: " + countdown);
+        turnLabel.setText("You Missed! Next turn in: " + countdown);
 
         countdownTimer = new Timer(1000, new ActionListener() {
             @Override
@@ -153,7 +180,7 @@ public class Battleship extends JFrame {
                 countdown--;
 
                 if (countdown > 0) {
-                    turnLabel.setText("Next turn in: " + countdown);
+                    turnLabel.setText("You Missed! Next turn in: " + countdown);
                 }
                 else {
                     countdownTimer.stop();
@@ -181,6 +208,11 @@ public class Battleship extends JFrame {
         for (Component c : playerTwoPanel.getComponents()) {
             c.setEnabled(enabled);
         }
+    }
+
+    private void restartGame() {
+        this.dispose();
+        new Battleship();
     }
 
     public static void main(String[] args) {
