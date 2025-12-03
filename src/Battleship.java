@@ -87,17 +87,24 @@ public class Battleship extends JFrame {
                     // Player 2 can only click RIGHT board
                     if (!playerOnesTurn && cell.isLeftBoard) return;
 
-                    if(model.hasShip(row,col)){
-                        model.markHit(row,col);
+                    //hit case
+                    if (model.hasShip(row, col)) {
+                        model.markHit(row, col);
                         cell.setBackground(Color.RED);
+
+                        //keep your turn
+                        turnLabel.setText(
+                            (playerOnesTurn ? "Player 1" : "Player 2") + " Hit! Shoot Again!"
+                        );
+
+                        return;   
                     }
 
-                    else{
-                        model.markMiss(row,col);
-                        cell.setBackground(Color.WHITE);
-                    }
+                    //miss case
+                    model.markMiss(row, col);
+                    cell.setBackground(Color.WHITE);
 
-
+                    
                     endTurn();
                 }
             });

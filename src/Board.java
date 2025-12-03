@@ -43,34 +43,46 @@ public class Board {
         return grid[row][col] == WATER;
     }
 
-
-
-
-    public boolean canPlaceShip(int startRow, int startCol, int length, boolean horizontal){
+    public boolean canPlaceShip(int startRow, int startCol, int length, boolean horizontal) {
         int size = grid.length;
 
+        
         if(horizontal){
-            if(startCol + length > length){
+            if(startCol + length > size)
                 return false;
-            }
-            for(int column = startCol; column < startCol + length; column++){
-                if(grid[startRow][column] != WATER){
-                    return false;
+        } 
+        else{
+            if(startRow + length > size)
+                return false;
+        }
+
+        java.util.function.BiPredicate<Integer, Integer> isWaterSafe = (r, c) -> {
+            if (r < 0 || c < 0 || r >= size || c >= size)
+                return true;  // out of bounds = safe
+            return grid[r][c] == WATER;
+        };
+
+        //Check ship squares and the surrounding squares
+        if (horizontal) {
+            for (int c = startCol - 1; c <= startCol + length; c++) {
+                for (int r = startRow - 1; r <= startRow + 1; r++) {
+                    if (!isWaterSafe.test(r, c))
+                        return false;
                 }
             }
         }
         else {
-            if(startRow + length > length){
-                return false;
-            }
-            for(int row = startRow; row < startRow + length; row++){
-                if(grid[row][startCol] != WATER){
-                    return false;
+            for (int r = startRow - 1; r <= startRow + length; r++) {
+                for (int c = startCol - 1; c <= startCol + 1; c++) {
+                    if (!isWaterSafe.test(r, c))
+                        return false;
                 }
             }
         }
+
         return true;
     }
+
 
     public boolean placeShipOnBoard(Ship ship, int startRow, int startCol, boolean horizontal){
         int shipLength = ship.getLength();
