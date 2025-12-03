@@ -31,4 +31,14 @@ public class Board {
     public boolean hasBeenShot(int row, int col) {
         return grid[row][col] == MISS || grid[row][col] == HIT;
     }
+
+    public boolean hasShip(int row, int col) {
+        return grid[row][col] == SHIP;
+    }
+
+    public boolean isWater(int row, int col) {
+        return grid[row][col] == WATER;
+    }
+
+
 }
