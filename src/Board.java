@@ -148,33 +148,4 @@ public class Board {
         }
         return true;
     }
-
-    /* public void markSurroundingCells(Ship ship) {
-        int size = grid.length;
-        int row = ship.getStartRow();
-        int col = ship.getStartCol();
-        int length = ship.getLength();
-        boolean horizontal = ship.isHorizontal();
-
-        if(horizontal) {
-            for(int r = row - 1; r <= row + 1; r++) {
-                for(int c = col - 1; c <= col + length; c++) {
-                    if(r >= 0 && r < size && c >= 0 && c < size) {
-                        if (grid[r][c] == WATER)
-                            grid[r][c] = MISS;
-                    }
-                } 
-            }
-        }
-        else {
-            for(int r = row - 1; r <= row + length; r++) {
-                for(int c = col - 1; c <= col + 1; c++) {
-                    if(r >= 0 && r < size && c >= 0 && c < size) {
-                        if(grid[r][c] == WATER)
-                            grid[r][c] = MISS;
-                    }
-                }
-            }
-        }
-    } */
 }
