@@ -29,19 +29,16 @@ public class Battleship extends JFrame {
 
         playerOneBoard = new Board(SIZE);
         playerTwoBoard = new Board(SIZE);
-
         System.out.println("Boards Created");
 
         playerOneBoard.placeShipsRandomly();
         playerTwoBoard.placeShipsRandomly();
-
         System.out.println("Ships Placed Randomly");
 
         playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
         playerTwoPanel = createBoard(false, playerTwoBoard); // Player 2 clicks here
         mainPanel.add(playerOnePanel);
         mainPanel.add(playerTwoPanel);
-
         System.out.println("Panels Created");
 
         turnLabel = new JLabel("Player 1's Turn", SwingConstants.CENTER);
@@ -62,8 +59,6 @@ public class Battleship extends JFrame {
         JPanel board = new JPanel();
         board.setLayout(new GridLayout(SIZE, SIZE));
         board.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
-
-
 
 
         //sets up the letters across the top of each board
@@ -92,7 +87,7 @@ public class Battleship extends JFrame {
         outerBoard.add(board, BorderLayout.CENTER);
 
 
-
+        //creates the cells in each player panel
         for (int i = 0; i < SIZE * SIZE; i++) {
             int row = i / SIZE;
             int col = i % SIZE;
