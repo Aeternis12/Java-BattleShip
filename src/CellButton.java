@@ -1,13 +1,66 @@
 import javax.swing.*;
+import java.awt.*;
 
 public class CellButton extends JButton {
+
+    public static final int none = 0;
+    public static final int miss = 1;
+    public static final int hit = 2;
+    public static final int ship = 3;
+
     public final int row;
     public final int col;
     public final boolean isLeftBoard;
+
+    private int state = none;
 
     public CellButton(int row, int col, boolean isLeftBoard) {
         this.row = row;
         this.col = col;
         this.isLeftBoard = isLeftBoard;
+
+        setFocusPainted(false);
+        setContentAreaFilled(true);
+        setOpaque(true);
+        setBackground(new Color(173, 216, 230));
+        setBorder(BorderFactory.createLineBorder(Color.BLACK));
+    }
+
+    public void setState(int state) {
+        this.state = state;
+        repaint();
+    }
+
+    public void setShip() {
+        this.state = ship;
+        repaint();
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if(state == none) 
+            return;
+        int d = Math.min(getWidth(), getHeight()) - 12;
+        if(state == miss){
+            g2.setColor(Color.WHITE);
+            g2.fillOval((getWidth()-d)/2, (getHeight()-d)/2, d, d);
+        }
+        else if(state == hit) {
+            g2.setColor(Color.RED);
+            g2.fillOval((getWidth()-d)/2, (getHeight()-d)/2, d, d);
+        }
+        else if(state == ship) {
+            g2.setColor(new Color(100, 100, 100));
+            g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
+        }
     }
 }

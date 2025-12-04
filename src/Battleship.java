@@ -71,26 +71,32 @@ public class Battleship extends JFrame {
             cell.setOpaque(true);
             cell.setFocusPainted(false);
 
-            if (model.hasShip(row, col)) {
-                cell.setBackground(Color.GRAY);
+            if(model.hasShip(row, col)) {
+                cell.setShip();
             }
 
             cell.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
 
-                    if (turnLocked) return;
+                    if(model.hasBeenShot(row, col))
+                        return;
+
+                    if(turnLocked) 
+                        return;
 
                     // Player 1 can only click LEFT board
-                    if (playerOnesTurn && !cell.isLeftBoard) return;
+                    if(playerOnesTurn && !cell.isLeftBoard) 
+                        return;
 
                     // Player 2 can only click RIGHT board
-                    if (!playerOnesTurn && cell.isLeftBoard) return;
+                    if(!playerOnesTurn && cell.isLeftBoard) 
+                        return;
 
                     //hit case
-                    if (model.hasShip(row, col)) {
+                    if(model.hasShip(row, col)) {
                         model.markHit(row, col);
-                        cell.setBackground(Color.RED);
+                        cell.setState(CellButton.hit);
 
                         //what kind of ship got hit
                         Ship hitShip = model.getShipAt(row, col);
@@ -119,7 +125,7 @@ public class Battleship extends JFrame {
                         );
 
                         //display message when ship gets sank
-                        if (hitShip.isSunk()) {
+                        if(hitShip.isSunk()) {
                             turnLabel.setText(
                                 "You sank my " + hitShip.getName() + "!"
                             );
@@ -130,7 +136,7 @@ public class Battleship extends JFrame {
 
                     //miss case
                     model.markMiss(row, col);
-                    cell.setBackground(Color.WHITE);
+                    cell.setState(CellButton.miss);
 
                     endTurn();
                 }
@@ -179,7 +185,7 @@ public class Battleship extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 countdown--;
 
-                if (countdown > 0) {
+                if(countdown > 0) {
                     turnLabel.setText("You Missed! Next turn in: " + countdown);
                 }
                 else {
@@ -188,7 +194,7 @@ public class Battleship extends JFrame {
                     turnLocked = false;
                     setBoardsEnabled(true);
 
-                    if (playerOnesTurn) {
+                    if(playerOnesTurn) {
                         turnLabel.setText("Player 1's Turn");
                     }
                     else {
@@ -215,6 +221,63 @@ public class Battleship extends JFrame {
         new Battleship();
     }
 
+    /* private void refreshUI(JPanel boardPanel, Board model) {
+        Component[] components = boardPanel.getComponents();
+
+        for(int i = 0; i < components.length; i++) {
+            if(components[i] instanceof CellButton button) {
+                int row = i / 10;
+                int col = i % 10;
+                int cellValue = model.getCell(row, col);
+
+                if(cellValue == Board.MISS) {
+                    button.setState(CellButton.miss);
+                } 
+                else if(cellValue == Board.HIT) {
+                    button.setState(CellButton.hit);
+                }
+            }
+        }
+    }
+
+    private void markSurroundingNew(Board model, JPanel boardPanel, Ship ship) {
+
+        int size = 10; // your board is 10×10
+        int row = ship.getStartRow();
+        int col = ship.getStartCol();
+        int length = ship.getLength();
+        boolean horizontal = ship.isHorizontal();
+
+        Component[] components = boardPanel.getComponents();
+
+        //helper
+        java.util.function.BiConsumer<Integer, Integer> updateCell = (r, c) -> {
+            if(r < 0 || c < 0 || r >= size || c >= size) 
+                return;
+            if(model.getCell(r, c) == Board.WATER) {
+                model.setCell(r, c, Board.MISS);
+                int index = r * size + c;
+                CellButton btn = (CellButton) components[index];
+                btn.setState(CellButton.miss);
+            }
+        };
+
+        if(horizontal) {
+            for(int rr = row - 1; rr <= row + 1; rr++) {
+               for(int cc = col - 1; cc <= col + length; cc++) {
+                    updateCell.accept(rr, cc);
+                }
+            }
+        }
+        else { 
+            for(int rr = row - 1; rr <= row + length; rr++) {
+                for(int cc = col - 1; cc <= col + 1; cc++) {
+                    updateCell.accept(rr, cc);
+                }
+            }
+        }
+    } */
+    
     public static void main(String[] args) {
         new Battleship();
     }

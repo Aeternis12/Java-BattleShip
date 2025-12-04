@@ -22,7 +22,6 @@ public class Board {
         grid[row][col] = value;
     }
 
-
     public void markMiss(int row, int col) {
         grid[row][col] = MISS;
     }
@@ -114,6 +113,7 @@ public class Board {
                 new Carrier(),
                 new BattleshipShip(),
                 new Cruiser(),
+                new Cruiser(),  //added a second Cruiser because original battleship has 2 3long ships
                 new Destroyer(),
         };
 
@@ -134,7 +134,7 @@ public class Board {
     //helper for figuring out what kind of ship is at a square
     public Ship getShipAt(int row, int col) {
         for(Ship ship : ships) {
-            if (ship.occupiesGridLocation(row, col)) {
+            if(ship.occupiesGridLocation(row, col)) {
                 return ship;
             }
         }
@@ -149,4 +149,32 @@ public class Board {
         return true;
     }
 
+    /* public void markSurroundingCells(Ship ship) {
+        int size = grid.length;
+        int row = ship.getStartRow();
+        int col = ship.getStartCol();
+        int length = ship.getLength();
+        boolean horizontal = ship.isHorizontal();
+
+        if(horizontal) {
+            for(int r = row - 1; r <= row + 1; r++) {
+                for(int c = col - 1; c <= col + length; c++) {
+                    if(r >= 0 && r < size && c >= 0 && c < size) {
+                        if (grid[r][c] == WATER)
+                            grid[r][c] = MISS;
+                    }
+                } 
+            }
+        }
+        else {
+            for(int r = row - 1; r <= row + length; r++) {
+                for(int c = col - 1; c <= col + 1; c++) {
+                    if(r >= 0 && r < size && c >= 0 && c < size) {
+                        if(grid[r][c] == WATER)
+                            grid[r][c] = MISS;
+                    }
+                }
+            }
+        }
+    } */
 }
