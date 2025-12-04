@@ -29,14 +29,12 @@ public abstract class Ship {
     }
 
 
-    //SHIP PLACEMENT
-
+    // ------ STATE TRACKING ------ \\
     public void placeShip(int row, int col, boolean horizontal) {
         this.startRow = row;
         this.startCol = col;
         this.horizontal = horizontal;
     }
-
     public boolean occupiesGridLocation(int row, int col) {
         if (startRow < 0 || startCol < 0){
             return false;
@@ -48,7 +46,6 @@ public abstract class Ship {
             return col == startCol && row >= startRow && row < startRow + length;
         }
     }
-
     public boolean shipHasBeenHit (int row, int col) {
         if (!occupiesGridLocation(row, col)) {
             return false;
@@ -59,7 +56,6 @@ public abstract class Ship {
         }
         return true;
     }
-
     public boolean isSunk(){
         return hitCount >= length;
     }
