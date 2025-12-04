@@ -56,9 +56,41 @@ public class Battleship extends JFrame {
     }
 
     private JPanel createBoard(boolean isLeftBoard, Board model) {
+
+
         JPanel board = new JPanel();
         board.setLayout(new GridLayout(SIZE, SIZE));
         board.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
+
+
+
+
+        //sets up the letters across the top of each board
+        JPanel topPanel = new JPanel(new GridLayout(1, SIZE + 1));
+        JLabel corner = new JLabel(" "); //cornor so letters start on cell 1
+        corner.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+        topPanel.add(corner);
+        for (int col = 0; col < SIZE; col++) {
+            JLabel label = new JLabel(String.valueOf((char)('A' + col)), SwingConstants.CENTER);
+            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+            topPanel.add(label);
+        }
+
+        //sets up the numbers along the left side of each board
+        JPanel leftPanel = new JPanel(new GridLayout(SIZE, 1));
+        for (int row = 0; row < SIZE; row++) {
+            JLabel label = new JLabel(String.valueOf(row + 1), SwingConstants.CENTER);
+            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+            leftPanel.add(label);
+        }
+
+        //sets up the main board, which contains each player's board
+        JPanel outerBoard = new JPanel(new BorderLayout());
+        outerBoard.add(topPanel, BorderLayout.NORTH);
+        outerBoard.add(leftPanel, BorderLayout.WEST);
+        outerBoard.add(board, BorderLayout.CENTER);
+
+
 
         for (int i = 0; i < SIZE * SIZE; i++) {
             int row = i / SIZE;
@@ -74,6 +106,7 @@ public class Battleship extends JFrame {
             if(model.hasShip(row, col)) {
                 cell.setShip();
             }
+            
 
             cell.addActionListener(new ActionListener() {
                 @Override
@@ -82,15 +115,15 @@ public class Battleship extends JFrame {
                     if(model.hasBeenShot(row, col))
                         return;
 
-                    if(turnLocked) 
+                    if(turnLocked)
                         return;
 
                     // Player 1 can only click LEFT board
-                    if(playerOnesTurn && !cell.isLeftBoard) 
+                    if(playerOnesTurn && !cell.isLeftBoard)
                         return;
 
                     // Player 2 can only click RIGHT board
-                    if(!playerOnesTurn && cell.isLeftBoard) 
+                    if(!playerOnesTurn && cell.isLeftBoard)
                         return;
 
                     //hit case
@@ -131,7 +164,7 @@ public class Battleship extends JFrame {
                             );
                         }
 
-                        return;   
+                        return;
                     }
 
                     //miss case
@@ -146,29 +179,6 @@ public class Battleship extends JFrame {
         }
 
 
-        JPanel topPanel = new JPanel(new GridLayout(1, SIZE + 1));
-
-        JLabel corner = new JLabel(" ");
-        corner.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
-        topPanel.add(corner);
-        for (int col = 0; col < SIZE; col++) {
-            JLabel label = new JLabel(String.valueOf((char)('A' + col)), SwingConstants.CENTER);
-            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
-            topPanel.add(label);
-        }
-
-
-        JPanel leftPanel = new JPanel(new GridLayout(SIZE, 1));
-        for (int row = 0; row < SIZE; row++) {
-            JLabel label = new JLabel(String.valueOf(row + 1), SwingConstants.CENTER);
-            label.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
-            leftPanel.add(label);
-        }
-
-        JPanel outerBoard = new JPanel(new BorderLayout());
-        outerBoard.add(topPanel, BorderLayout.NORTH);
-        outerBoard.add(leftPanel, BorderLayout.WEST);
-        outerBoard.add(board, BorderLayout.CENTER);
 
         return outerBoard;
     }
