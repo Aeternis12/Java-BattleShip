@@ -7,6 +7,8 @@ public class CellButton extends JButton {
     public static final int miss = 1;
     public static final int hit = 2;
     public static final int ship = 3;
+    public static final int hidden = 4;
+    
 
     public final int row;
     public final int col;
@@ -60,6 +62,10 @@ public class CellButton extends JButton {
         }
         else if(state == ship) {
             g2.setColor(new Color(100, 100, 100));
+            g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
+        }
+        else if(state == hidden) {
+            g2.setColor(new Color(126, 204, 241));
             g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
         }
     }

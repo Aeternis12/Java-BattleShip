@@ -52,6 +52,7 @@ public class Battleship extends JFrame {
 
         pack(); // Sizes window based on button sizes
         setLocationRelativeTo(null);
+        updateBoardPrivacy();
         setVisible(true);
     }
 
@@ -98,7 +99,7 @@ public class Battleship extends JFrame {
 
             CellButton cell = new CellButton(row, col, isLeftBoard);
             cell.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
-            cell.setBackground(new Color(173, 216, 230)); // Light blue
+            cell.setBackground(new Color(126, 204, 241)); // Light blue
             cell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             cell.setOpaque(true);
             cell.setFocusPainted(false);
@@ -162,6 +163,11 @@ public class Battleship extends JFrame {
                             turnLabel.setText(
                                 "You sank my " + hitShip.getName() + "!"
                             );
+
+                            if(cell.isLeftBoard)
+                                markSurroundingCells(model, playerOnePanel, hitShip);                            
+                            else 
+                                markSurroundingCells(model, playerTwoPanel, hitShip);
                         }
 
                         return;
@@ -170,6 +176,7 @@ public class Battleship extends JFrame {
                     //miss case
                     model.markMiss(row, col);
                     cell.setState(CellButton.miss);
+                    updateBoardPrivacy();
 
                     endTurn();
                 }
@@ -185,6 +192,7 @@ public class Battleship extends JFrame {
 
     private void endTurn() {
         turnLocked = true;
+        updateBoardPrivacy();
         setBoardsEnabled(false);
 
         countdown = 1;
@@ -203,6 +211,7 @@ public class Battleship extends JFrame {
                     playerOnesTurn = !playerOnesTurn;
                     turnLocked = false;
                     setBoardsEnabled(true);
+                    updateBoardPrivacy();
 
                     if(playerOnesTurn) {
                         turnLabel.setText("Player 1's Turn");
@@ -231,39 +240,22 @@ public class Battleship extends JFrame {
         new Battleship();
     }
 
-    /* private void refreshUI(JPanel boardPanel, Board model) {
-        Component[] components = boardPanel.getComponents();
 
-        for(int i = 0; i < components.length; i++) {
-            if(components[i] instanceof CellButton button) {
-                int row = i / 10;
-                int col = i % 10;
-                int cellValue = model.getCell(row, col);
-
-                if(cellValue == Board.MISS) {
-                    button.setState(CellButton.miss);
-                } 
-                else if(cellValue == Board.HIT) {
-                    button.setState(CellButton.hit);
-                }
-            }
-        }
-    }
-
-    private void markSurroundingNew(Board model, JPanel boardPanel, Ship ship) {
-
-        int size = 10; // your board is 10×10
+    private void markSurroundingCells(Board model, JPanel boardPanel, Ship ship) {
+        int size = SIZE;
         int row = ship.getStartRow();
         int col = ship.getStartCol();
         int length = ship.getLength();
         boolean horizontal = ship.isHorizontal();
 
-        Component[] components = boardPanel.getComponents();
+        Component[] components = ((JPanel)((BorderLayout)boardPanel.getLayout())
+                .getLayoutComponent(BorderLayout.CENTER)).getComponents();
 
-        //helper
+        // helper
         java.util.function.BiConsumer<Integer, Integer> updateCell = (r, c) -> {
-            if(r < 0 || c < 0 || r >= size || c >= size) 
+            if(r < 0 || c < 0 || r >= size || c >= size)
                 return;
+
             if(model.getCell(r, c) == Board.WATER) {
                 model.setCell(r, c, Board.MISS);
                 int index = r * size + c;
@@ -272,22 +264,78 @@ public class Battleship extends JFrame {
             }
         };
 
-        if(horizontal) {
+        if (horizontal) {
             for(int rr = row - 1; rr <= row + 1; rr++) {
-               for(int cc = col - 1; cc <= col + length; cc++) {
+                for(int cc = col - 1; cc <= col + length; cc++) {
                     updateCell.accept(rr, cc);
                 }
             }
         }
-        else { 
+        else {
             for(int rr = row - 1; rr <= row + length; rr++) {
                 for(int cc = col - 1; cc <= col + 1; cc++) {
                     updateCell.accept(rr, cc);
                 }
             }
         }
-    } */
-    
+    }
+
+    private void updateBoardPrivacy() {
+        updatePrivacyEachTurn(playerTwoPanel, playerTwoBoard, true);
+        updatePrivacyEachTurn(playerOnePanel, playerOneBoard, false);
+    }
+
+    private void updatePrivacyEachTurn(JPanel outerBoard, Board model, boolean isLeftBoard) {
+        JPanel grid = (JPanel)((BorderLayout)outerBoard.getLayout())
+            .getLayoutComponent(BorderLayout.CENTER);
+        Component[] comps = grid.getComponents();
+
+        for(int i = 0; i < comps.length; i++) {
+            CellButton btn = (CellButton) comps[i];
+            int row = i / SIZE;
+            int col = i % SIZE;
+
+            if(model.getCell(row, col) == Board.HIT) {
+                btn.setState(CellButton.hit);
+                continue;
+            }
+            if(model.getCell(row, col) == Board.MISS) {
+               btn.setState(CellButton.miss);
+               continue;
+           }
+
+            boolean isShip = model.hasShip(row, col);
+
+            //hide everything during countdown
+            if(turnLocked) {
+                btn.setState(CellButton.none);
+                continue;
+            }
+
+            //hide player 2's ships 
+            if(playerOnesTurn) {
+                if(isLeftBoard) {
+                    //show player 1s ships
+                    btn.setState(isShip ? CellButton.ship : CellButton.none);
+                }
+                else {
+                    //hide other ships
+                    btn.setState(isShip ? CellButton.hidden : CellButton.none);
+                }
+            }
+            //hide player 1s ships
+            else {
+                if(!isLeftBoard) {
+                   //show player 2s ships
+                   btn.setState(isShip ? CellButton.ship : CellButton.none);
+                }
+                else {
+                    //hide other ships
+                    btn.setState(isShip ? CellButton.hidden : CellButton.none);
+                }
+        }
+        }
+    }
     public static void main(String[] args) {
         new Battleship();
     }
