@@ -10,14 +10,14 @@ public class Board {
     private final int[][] grid;
     private final ArrayList<Ship> ships = new ArrayList<>();
 
+
+    // -------- GRID STATE TRACKING ------- \\
     public Board(int size){
         this.grid = new int[size][size];
     }
-
     public int getCell(int row, int col) {
         return grid[row][col];
     }
-
     public void setCell(int row, int col, int value) {
         grid[row][col] = value;
     }
@@ -25,30 +25,45 @@ public class Board {
     public void markMiss(int row, int col) {
         grid[row][col] = MISS;
     }
-
     public void markHit(int row, int col) {
         grid[row][col] = HIT;
     }
+    public boolean allShipsSunk() {
+        for(Ship s : ships) {
+            if(!s.isSunk())
+                return false;
+        }
+        return true;
+    }
 
-    public boolean hasBeenShot(int row, int col) {
+    public boolean isHit(int row, int col) {
         return grid[row][col] == MISS || grid[row][col] == HIT;
     }
-
-    public boolean hasShip(int row, int col) {
+    public boolean isShip(int row, int col) {
         return grid[row][col] == SHIP;
     }
-
     public boolean isWater(int row, int col) {
         return grid[row][col] == WATER;
     }
+    public Ship getShipAt(int row, int col) {
+        for(Ship ship : ships) {
+            if(ship.occupiesGridLocation(row, col)) {
+                return ship;
+            }
+        }
+        return null;
+    }
 
+
+
+    // -------- SHIP PLACEMENT LOGIC -------- \\
     public boolean canPlaceShip(int startRow, int startCol, int length, boolean horizontal) {
         int size = grid.length;
 
         if(horizontal){
             if(startCol + length > size)
                 return false;
-        } 
+        }
         else{
             if(startRow + length > size)
                 return false;
@@ -80,8 +95,6 @@ public class Board {
 
         return true;
     }
-
-
     public boolean placeShipOnBoard(Ship ship, int startRow, int startCol, boolean horizontal){
         int shipLength = ship.getLength();
 
@@ -106,8 +119,6 @@ public class Board {
 
         return true;
     }
-
-
     public void placeShipsRandomly(){
         Ship[] fleet = {
                 new Carrier(),
@@ -131,21 +142,4 @@ public class Board {
         }
     }
 
-    //helper for figuring out what kind of ship is at a square
-    public Ship getShipAt(int row, int col) {
-        for(Ship ship : ships) {
-            if(ship.occupiesGridLocation(row, col)) {
-                return ship;
-            }
-        }
-        return null;
-    }
-
-    public boolean allShipsSunk() {
-        for(Ship s : ships) {
-            if(!s.isSunk()) 
-                return false;
-        }
-        return true;
-    }
 }

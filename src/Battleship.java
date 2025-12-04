@@ -10,16 +10,21 @@ public class Battleship extends JFrame {
     private boolean playerOnesTurn = true;
     private boolean turnLocked = false;
 
-    private JPanel playerOnePanel;
-    private JPanel playerTwoPanel;
+    private final JPanel playerOnePanel;
+    private final JPanel playerTwoPanel;
 
-    private Board playerOneBoard;
-    private Board playerTwoBoard;
+    private final Board playerOneBoard;
+    private final Board playerTwoBoard;
 
-    private JLabel turnLabel;
+    private final JLabel turnLabel;
     private Timer countdownTimer;
-    private int countdown = 3;
+    private int countdown;
+    private static int TURN_DELAY_SECONDS = 1;
 
+    // --------- MAIN GAME ITSELF ------- \\
+    public static void main(String[] args) {
+        new Battleship();
+    }
     public Battleship() {
         setTitle("Battleship");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,14 +57,36 @@ public class Battleship extends JFrame {
         updateBoardPrivacy();
         setVisible(true);
     }
+    private void restartGame() {
+        this.dispose();
+        new Battleship();
+    }
 
-    private JPanel createBoard(boolean isLeftBoard, Board model) {
+
+    // ----------- BOARD CREATION AND CLICKING ---------- \\
+    private JPanel createGridPanel(boolean isLeftBoard, Board model){
+        JPanel grid = new JPanel();
+        grid.setLayout(new GridLayout(SIZE, SIZE));
+        grid.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
+
+        for (int i = 0; i < SIZE * SIZE; i++) {
+            int row = i / SIZE;
+            int col = i % SIZE;
+
+            CellButton cell = new CellButton(row, col, isLeftBoard);
+            cell.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
+            cell.setBackground(new Color(126, 204, 241)); // Light blue
+            cell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+            cell.setOpaque(true);
+            cell.setFocusPainted(false);
 
 
-        JPanel board = new JPanel();
-        board.setLayout(new GridLayout(SIZE, SIZE));
-        board.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
-
+            cell.addActionListener(e -> handleClickCell(cell, model));
+            grid.add(cell);
+        }
+        return grid;
+    }
+    private JPanel createBoardLabels(JPanel playerBoard){
 
         //sets up the letters across the top of each board
         JPanel topPanel = new JPanel(new GridLayout(1, SIZE + 1));
@@ -81,161 +108,94 @@ public class Battleship extends JFrame {
         }
 
         //sets up the main board, which contains each player's board
-        JPanel outerBoard = new JPanel(new BorderLayout());
-        outerBoard.add(topPanel, BorderLayout.NORTH);
-        outerBoard.add(leftPanel, BorderLayout.WEST);
-        outerBoard.add(board, BorderLayout.CENTER);
+        JPanel fullPlayerPanel = new JPanel(new BorderLayout());
+        fullPlayerPanel.add(topPanel, BorderLayout.NORTH);
+        fullPlayerPanel.add(leftPanel, BorderLayout.WEST);
+        fullPlayerPanel.add(playerBoard, BorderLayout.CENTER);
 
-
-        //creates the cells in each player panel
-        for (int i = 0; i < SIZE * SIZE; i++) {
-            int row = i / SIZE;
-            int col = i % SIZE;
-
-            CellButton cell = new CellButton(row, col, isLeftBoard);
-            cell.setPreferredSize(new Dimension(CELL_SIZE, CELL_SIZE));
-            cell.setBackground(new Color(126, 204, 241)); // Light blue
-            cell.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            cell.setOpaque(true);
-            cell.setFocusPainted(false);
-
-            if(model.hasShip(row, col)) {
-                cell.setShip();
-            }
-            
-
-            cell.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-
-                    if(model.hasBeenShot(row, col))
-                        return;
-
-                    if(turnLocked)
-                        return;
-
-                    // Player 1 can only click LEFT board
-                    if(playerOnesTurn && !cell.isLeftBoard)
-                        return;
-
-                    // Player 2 can only click RIGHT board
-                    if(!playerOnesTurn && cell.isLeftBoard)
-                        return;
-
-                    //hit case
-                    if(model.hasShip(row, col)) {
-                        model.markHit(row, col);
-                        cell.setState(CellButton.hit);
-
-                        //what kind of ship got hit
-                        Ship hitShip = model.getShipAt(row, col);
-                        boolean wasHit = hitShip.shipHasBeenHit(row, col);
-
-                        if(model.allShipsSunk()){
-                            String winner = playerOnesTurn ? "Player 1" : "Player 2";
-
-                            int result = JOptionPane.showConfirmDialog(
-                                Battleship.this,
-                                winner + " Wins!\nPlay again?",
-                                "Game Over",
-                                JOptionPane.YES_NO_OPTION
-                            );
-
-                            if(result==JOptionPane.YES_OPTION) {
-                                restartGame();
-                            }
-                            else {
-                                System.exit(0);
-                            }
-                        }
-                        //keep turn
-                        turnLabel.setText(
-                            " Hit! Shoot again!"
-                        );
-
-                        //display message when ship gets sank
-                        if(hitShip.isSunk()) {
-                            turnLabel.setText(
-                                "You sank my " + hitShip.getName() + "!"
-                            );
-
-                            if(cell.isLeftBoard)
-                                markSurroundingCells(model, playerOnePanel, hitShip);                            
-                            else 
-                                markSurroundingCells(model, playerTwoPanel, hitShip);
-                        }
-
-                        return;
-                    }
-
-                    //miss case
-                    model.markMiss(row, col);
-                    cell.setState(CellButton.miss);
-                    updateBoardPrivacy();
-
-                    endTurn();
-                }
-            });
-
-            board.add(cell);
-        }
-
-
-
-        return outerBoard;
+        return fullPlayerPanel;
     }
+    private JPanel createBoard(boolean isLeftBoard, Board model) {
+        JPanel boardPanel = createGridPanel(isLeftBoard, model);
+        JPanel boardWithLabels = createBoardLabels(boardPanel);
+        return boardWithLabels;
+    }
+    private void handleClickCell(CellButton cell, Board model){
 
-    private void endTurn() {
-        turnLocked = true;
-        updateBoardPrivacy();
-        setBoardsEnabled(false);
+        int row = cell.row;
+        int col = cell.col;
 
-        countdown = 1;
-        turnLabel.setText("You Missed! Next turn in: " + countdown);
+        //If location has already been shot at, do nothing
+        if(model.isHit(row, col))
+            return;
 
-        countdownTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                countdown--;
+        //If its is between turns, do nothing
+        if(turnLocked)
+            return;
 
-                if(countdown > 0) {
-                    turnLabel.setText("You Missed! Next turn in: " + countdown);
+        // Player 1 can only click LEFT board
+        if(playerOnesTurn && !cell.isLeftBoard)
+            return;
+
+        // Player 2 can only click RIGHT board
+        if(!playerOnesTurn && cell.isLeftBoard)
+            return;
+
+        //hit case
+        if(model.isShip(row, col)) {
+            model.markHit(row, col);
+            cell.setState(CellButton.hit);
+
+            //what kind of ship got hit
+            Ship hitShip = model.getShipAt(row, col);
+            boolean wasHit = hitShip.shipHasBeenHit(row, col);
+
+            //if no more ships left to hit
+            if(model.allShipsSunk()){
+                String winner = playerOnesTurn ? "Player 1" : "Player 2";
+
+                //Which player wins
+                int result = JOptionPane.showConfirmDialog(
+                        Battleship.this,
+                        winner + " Wins!\nPlay again?",
+                        "Game Over",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if(result==JOptionPane.YES_OPTION) {
+                    restartGame();
                 }
                 else {
-                    countdownTimer.stop();
-                    playerOnesTurn = !playerOnesTurn;
-                    turnLocked = false;
-                    setBoardsEnabled(true);
-                    updateBoardPrivacy();
-
-                    if(playerOnesTurn) {
-                        turnLabel.setText("Player 1's Turn");
-                    }
-                    else {
-                        turnLabel.setText("Player 2's Turn");
-                    }
+                    System.exit(0);
                 }
             }
-        });
 
-        countdownTimer.start();
-    }
 
-    private void setBoardsEnabled(boolean enabled) {
-        for (Component c : playerOnePanel.getComponents()) {
-            c.setEnabled(enabled);
+            //keep turn if hit ship
+            turnLabel.setText(
+                    " Hit! Shoot again!"
+            );
+
+            //display message when ship is sank
+            if(hitShip.isSunk()) {
+                turnLabel.setText(
+                        "You sank my " + hitShip.getName() + "!"
+                );
+                if(cell.isLeftBoard)
+                    markSurroundingCells(model, playerOnePanel, hitShip);
+                else
+                    markSurroundingCells(model, playerTwoPanel, hitShip);
+            }
+
+            return;
         }
-        for (Component c : playerTwoPanel.getComponents()) {
-            c.setEnabled(enabled);
-        }
+
+        //miss case
+        model.markMiss(row, col);
+        cell.setState(CellButton.miss);
+        updateBoardPrivacy();
+        endTurn("You Missed! ");
     }
-
-    private void restartGame() {
-        this.dispose();
-        new Battleship();
-    }
-
-
     private void markSurroundingCells(Board model, JPanel boardPanel, Ship ship) {
         int size = SIZE;
         int row = ship.getStartRow();
@@ -243,8 +203,7 @@ public class Battleship extends JFrame {
         int length = ship.getLength();
         boolean horizontal = ship.isHorizontal();
 
-        Component[] components = ((JPanel)((BorderLayout)boardPanel.getLayout())
-                .getLayoutComponent(BorderLayout.CENTER)).getComponents();
+        Component[] components = getGridPanel(boardPanel).getComponents();
 
         // helper
         java.util.function.BiConsumer<Integer, Integer> updateCell = (r, c) -> {
@@ -275,14 +234,60 @@ public class Battleship extends JFrame {
         }
     }
 
+    // ---------- TURN LOGIC ---------- \\
+    private void endTurn(String message) {
+
+        //lock the boards and change ship visibility on both boards
+        turnLocked = true;
+        setBoardsEnabled(false);
+        countdown = TURN_DELAY_SECONDS;
+
+        turnLabel.setText(message + "Next turn in: " + countdown);
+        updateBoardPrivacy();
+
+        countdownTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                countdown--;
+
+                if(countdown > 0) {
+                    turnLabel.setText(message + "Next turn in: " + countdown);
+                }
+                else {
+                    countdownTimer.stop();
+                    switchPlayerTurn();
+                }
+            }
+        });
+        countdownTimer.start();
+    }
+    private void switchPlayerTurn() {
+        playerOnesTurn = !playerOnesTurn;
+        turnLocked = false;
+        setBoardsEnabled(true);
+        updateBoardPrivacy();
+
+        if(playerOnesTurn) {
+            turnLabel.setText("Player 1's Turn");
+        }
+        else {
+            turnLabel.setText("Player 2's Turn");
+        }
+    }
+    private void setBoardsEnabled(boolean enabled) {
+        for (Component c : playerOnePanel.getComponents()) {
+            c.setEnabled(enabled);
+        }
+        for (Component c : playerTwoPanel.getComponents()) {
+            c.setEnabled(enabled);
+        }
+    }
     private void updateBoardPrivacy() {
         updatePrivacyEachTurn(playerTwoPanel, playerTwoBoard, true);
         updatePrivacyEachTurn(playerOnePanel, playerOneBoard, false);
     }
-
-    private void updatePrivacyEachTurn(JPanel outerBoard, Board model, boolean isLeftBoard) {
-        JPanel grid = (JPanel)((BorderLayout)outerBoard.getLayout())
-            .getLayoutComponent(BorderLayout.CENTER);
+    private void updatePrivacyEachTurn(JPanel playerBoard, Board model, boolean isLeftBoard) {
+        JPanel grid = getGridPanel(playerBoard);
         Component[] comps = grid.getComponents();
 
         for(int i = 0; i < comps.length; i++) {
@@ -290,6 +295,7 @@ public class Battleship extends JFrame {
             int row = i / SIZE;
             int col = i % SIZE;
 
+            //Always show the hits and misses, no matter the player turn
             if(model.getCell(row, col) == Board.HIT) {
                 btn.setState(CellButton.hit);
                 continue;
@@ -299,7 +305,7 @@ public class Battleship extends JFrame {
                continue;
            }
 
-            boolean isShip = model.hasShip(row, col);
+            boolean isShip = model.isShip(row, col);
 
             //hide everything during countdown
             if(turnLocked) {
@@ -307,7 +313,7 @@ public class Battleship extends JFrame {
                 continue;
             }
 
-            //hide player 2's ships 
+            //Player 1's Turn, so hide Player 2's ships
             if(playerOnesTurn) {
                 if(isLeftBoard) {
                     //show player 1s ships
@@ -318,7 +324,7 @@ public class Battleship extends JFrame {
                     btn.setState(isShip ? CellButton.hidden : CellButton.none);
                 }
             }
-            //hide player 1s ships
+            //Player 2's Turn, so hide Player 1's ships
             else {
                 if(!isLeftBoard) {
                    //show player 2s ships
@@ -331,7 +337,12 @@ public class Battleship extends JFrame {
         }
         }
     }
-    public static void main(String[] args) {
-        new Battleship();
+    private JPanel getGridPanel(JPanel outerBoard){
+        return (JPanel)((BorderLayout) outerBoard.getLayout())
+                .getLayoutComponent(BorderLayout.CENTER);
     }
+
+
+
+
 }

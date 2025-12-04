@@ -8,12 +8,10 @@ public class CellButton extends JButton {
     public static final int hit = 2;
     public static final int ship = 3;
     public static final int hidden = 4;
-    
 
     public final int row;
     public final int col;
     public final boolean isLeftBoard;
-
     private int state = none;
 
     public CellButton(int row, int col, boolean isLeftBoard) {
@@ -27,21 +25,15 @@ public class CellButton extends JButton {
         setBackground(new Color(173, 216, 230));
         setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
-
     public void setState(int state) {
         this.state = state;
         repaint();
     }
-
-    public void setShip() {
-        this.state = ship;
-        repaint();
-    }
-
     public int getState() {
         return state;
     }
 
+    // -------- VIEW LOGIC ------- \\
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
