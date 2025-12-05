@@ -29,8 +29,6 @@ public class Battleship extends JFrame {
     private boolean playerOnePlacing = true;
     private int currentShipIndex = 0;
     private boolean placeShipHorizontal = true;
-    private boolean salvoMode = false;
-    private int shotsRemaining = 1;
 
 
     // ------- BOARD, PANEL AND BUTTONS ------- \\
@@ -53,6 +51,8 @@ public class Battleship extends JFrame {
     private Timer countdownTimer;
     private int countdown;
     private static int TURN_DELAY_SECONDS = 1;
+    private boolean salvoMode = false;
+    private int shotsRemaining = 1;
 
 
     //----------------------------------------------------------------------------------------------------------------\\
@@ -458,6 +458,11 @@ public class Battleship extends JFrame {
                 destroyerButton.setEnabled(false);
             }
             JOptionPane.showMessageDialog(this, "All Ships Placed. Game Start");
+
+            if(salvoMode) {
+                shotsRemaining = playerTwoBoard.getUnsunkCount();
+                turnLabel.setText("Player 1's Turn - Salvo: " + shotsRemaining + " Shots Remaining!");
+            }
 
         }
         updateBoardPrivacy();
