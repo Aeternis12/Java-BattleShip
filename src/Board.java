@@ -22,12 +22,15 @@ public class Board {
         grid[row][col] = value;
     }
 
+    //Marks grid location to hit or miss
     public void markMiss(int row, int col) {
         grid[row][col] = MISS;
     }
     public void markHit(int row, int col) {
         grid[row][col] = HIT;
     }
+
+    //Checks to see if all ships in the ships list are sunk
     public boolean allShipsSunk() {
         for(Ship s : ships) {
             if(!s.isSunk())
@@ -36,6 +39,7 @@ public class Board {
         return true;
     }
 
+    //Checks to see the state of a grid location
     public boolean isHit(int row, int col) {
         return grid[row][col] == MISS || grid[row][col] == HIT;
     }
@@ -45,6 +49,8 @@ public class Board {
     public boolean isWater(int row, int col) {
         return grid[row][col] == WATER;
     }
+
+    //Checks the ship list and sees what ship (if any) is at the grid location
     public Ship getShipAt(int row, int col) {
         for(Ship ship : ships) {
             if(ship.occupiesGridLocation(row, col)) {
@@ -58,8 +64,10 @@ public class Board {
 
     // -------- SHIP PLACEMENT LOGIC -------- \\
     public boolean canPlaceShip(int startRow, int startCol, int length, boolean horizontal) {
+        //Function checks to see if a ship is able to be placed on a grid location.
         int size = grid.length;
 
+        //If grid location plus ship length is too long, can't be placed
         if(horizontal){
             if(startCol + length > size)
                 return false;
@@ -69,9 +77,11 @@ public class Board {
                 return false;
         }
 
+        //Fun little include here, takes two integers and returns a boolean through a lambda call
+        //Checks to see if a grid location is inside the board, and if its water or not
         java.util.function.BiPredicate<Integer, Integer> isWaterSafe = (r, c) -> {
             if (r < 0 || c < 0 || r >= size || c >= size)
-                return true;  // out of bounds = safe
+                return true;
             return grid[r][c] == WATER;
         };
 
@@ -96,6 +106,9 @@ public class Board {
         return true;
     }
     public boolean placeShipOnBoard(Ship ship, int startRow, int startCol, boolean horizontal){
+        //Function actually places the ship in the grid using the placeShip function in Ship.java.
+        //Checks to see if desired location is placeable by using canPlaceShip, and changes the grid locations to ship
+        //state
         int shipLength = ship.getLength();
 
         if(!canPlaceShip(startRow, startCol, shipLength, horizontal)){
@@ -114,12 +127,13 @@ public class Board {
         }
 
         ship.placeShip(startRow, startCol, horizontal);
-
         ships.add(ship);
 
         return true;
     }
     public void placeShipsRandomly(Ship[] fleet){
+        //Function places the ships in the passed in fleet randomly by checking if they can be placed and determining
+        //random starting rows and columns.
         int size = grid.length;
 
         for (Ship ship : fleet) {
@@ -141,6 +155,7 @@ public class Board {
 
     // -------- SALVO MODE ------------ \\
     public int getUnsunkCount() {
+        //Finds how many ships in the ships list are not sunk, to determine number of shots for salvo mode.
         int count = 0;
         for(Ship s : ships) {
             if(!s.isSunk())

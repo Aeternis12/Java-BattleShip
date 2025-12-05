@@ -86,6 +86,7 @@ public class Battleship extends JFrame {
         setVisible(true);
     }
     private void initializeGameState(){
+        //Sets up all the initial game state variables, and asks for the mode to play in
         playerOneBoard = new Board(SIZE);
         playerTwoBoard = new Board(SIZE);
 
@@ -114,6 +115,7 @@ public class Battleship extends JFrame {
         salvoMode = (modeChoice == 1);
     }
     private void initializeUserInterface(){
+        //Sets up all of the buttons and panels and such for the user view.
 
         turnLabel = new JLabel("BattleShip", SwingConstants.CENTER);
         turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
@@ -149,6 +151,7 @@ public class Battleship extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
     }
     private void initializeListeners(){
+        //Function sets up the listeners for the buttons and clicking thorugh the cellListeners function.
 
         carrierButton.addActionListener(e -> selectShipToPlace(Carrier.class));
         battleshipButton.addActionListener(e -> selectShipToPlace(BattleshipShip.class));
@@ -162,6 +165,9 @@ public class Battleship extends JFrame {
 
     }
     private void initializeCellListenersForBoard(JPanel boardPanel, Board model){
+
+        //Function sets up the cell action and mouse listener, which calls to the hover, to the rotate, to the button
+        //clicking and the placement clicking
         JPanel grid = getGridPanel(boardPanel);
 
         for(Component comp: grid.getComponents()){
@@ -214,6 +220,7 @@ public class Battleship extends JFrame {
 
     // ----------- BOARD CREATION ---------- \\
     private Ship[] createFleet(){
+        //Initializes the fleet of ships
         return new Ship[] {
                 new Carrier(),
                 new BattleshipShip(),
@@ -223,6 +230,8 @@ public class Battleship extends JFrame {
         };
     }
     private JPanel createGridPanel(boolean isLeftBoard, Board model){
+
+        //Sets up the grid panel that will contain the cell buttons over the board.
         JPanel grid = new JPanel();
         grid.setLayout(new GridLayout(SIZE, SIZE));
         grid.setPreferredSize(new Dimension(SIZE * CELL_SIZE, SIZE * CELL_SIZE));
@@ -272,6 +281,7 @@ public class Battleship extends JFrame {
         return fullPlayerPanel;
     }
     private JPanel createBoard(boolean isLeftBoard, Board model) {
+        //Uses the previous two function to create the overarching player board
         JPanel boardPanel = createGridPanel(isLeftBoard, model);
         JPanel boardWithLabels = createBoardLabels(boardPanel);
         return boardWithLabels;
@@ -280,6 +290,9 @@ public class Battleship extends JFrame {
 
     // ---------- SHIP PLACEMENT LOGIC -------- \\
     private void selectShipToPlace(Class<? extends Ship> shipClass){
+
+        //Function called by clicking one of the ship buttons, and accesses the respective players fleet and already
+        //placed ships. Updates the interface to show the right ship
         if(!inShipPlacementPhase){
             return;
         }
@@ -303,6 +316,10 @@ public class Battleship extends JFrame {
                 "s are already placed.", "No ships left", JOptionPane.INFORMATION_MESSAGE );
     }
     private void placeAllShipsRandomlyForCurrentPlayer(){
+
+        //Longer function here. Gets the turn players fleet and placed ships, and their board and board panel
+        //Checks to see if any ships have been placed manually, then calls to the Board class's placeShipsRandomly
+        //Finally, updates the CellButtons in each grid location, to properly show the ships locations
         if(!inShipPlacementPhase){
             return;
         }
@@ -355,6 +372,10 @@ public class Battleship extends JFrame {
         nextPlacement();
     }
     private void updateShipButtonsEnabled() {
+
+        //Function checks to see if there are any of certain ships types left in a player's fleet to be placed, and
+        //disables the respective buttons accordingly. Also disables the random ship placement if any ships have been
+        //placed manually
         boolean carrierLeft = false;
         boolean battleshipLeft = false;
         boolean cruiserLeft = false;
@@ -409,6 +430,8 @@ public class Battleship extends JFrame {
         }
     }
     private void updatePlacementLabel(){
+        //Function manages the label that tells the user information about who's turn it is, if they're placing ships,
+        //and the information about the ships length, or how many shots in their salvo they have if needed.
         if(!inShipPlacementPhase){
             if(salvoMode) {
                 String player = playerOnesTurn ? "Player 1" : "Player 2";
@@ -435,6 +458,9 @@ public class Battleship extends JFrame {
                         " Left Click to Place, Right Click to Rotate");
     }
     private void handlePlacementClick(CellButton cell, Board model){
+        //Long function which handles the placement clicking of a players turn. Gets the current ship to be placed,
+        //and the row/col that the starting location of the ship wants to be placed on. If you can place the ship on that
+        //grid location and the range of its length, then do so. Also updates the cellbuttons that the ship will occupy
         if(playerOnePlacing && model != playerOneBoard){
             return;
         }
@@ -479,6 +505,10 @@ public class Battleship extends JFrame {
         nextPlacement();
     }
     private void nextPlacement(){
+
+        //This function handles what to do after a ship is placed. If there are no ships left, switch turns. If there
+        //are, update the currentship index in the ships list. Also checks if both players have already placed their ships,
+        //and if so disables all the ship buttons and prepares to start the game
         Ship[] currentFleet = playerOnePlacing ?  playerOneFleet : playerTwoFleet;
         boolean[] placedShips = playerOnePlacing ? playerOnePlacedShips : playerTwoPlacedShips;
 
@@ -538,6 +568,8 @@ public class Battleship extends JFrame {
 
     }
     private void handleHover(CellButton cell, Board model, boolean entered){
+
+        //Handles the starting logic of the hovering of the ship placements
         if(!inShipPlacementPhase){
             return;
         }
@@ -557,6 +589,8 @@ public class Battleship extends JFrame {
         showPreview(cell, model);
     }
     private void clearPreviewForBoard(JPanel gridPanel){
+
+        //Updates the different cellbuttons of a ship when it is no longer being hovered over, making it water again
         for(Component comp : gridPanel.getComponents()){
             if(comp instanceof CellButton btn){
                 int state = btn.getState();
@@ -567,6 +601,9 @@ public class Battleship extends JFrame {
         }
     }
     private void showPreview(CellButton cell, Board model){
+
+        //changes the cellbutton state of a range of buttons, determined by the selected ship length.
+        //If you can place a ship (by calling to the passed in board), show green, if not, show red)
         Ship ship = getCurrentShip();
         if(ship == null){
             return;
@@ -598,6 +635,8 @@ public class Battleship extends JFrame {
         }
     }
     private CellButton getCellButtonAt(JPanel grid, int row, int col){
+
+        //Function simply returns the cellButton of a boardpanel at a certain grid location
         int index = row * SIZE + col;
         if(index < 0 || index >= grid.getComponentCount()) {
             return null;
@@ -609,6 +648,8 @@ public class Battleship extends JFrame {
         return null;
     }
     private Ship getCurrentShip(){
+
+        //Returns what ship in the currentFleet is selected
         Ship [] currentFleet = playerOnePlacing ?  playerOneFleet : playerTwoFleet;
         if(currentShipIndex < 0 ||  currentShipIndex >= currentFleet.length){
             return null;
@@ -620,6 +661,11 @@ public class Battleship extends JFrame {
     // -------- CLICKING LOGIC DURING GAME -------- \\
     private void handleClickCell(CellButton cell, Board model){
 
+        //Longest function. checks validity of clikcing a cell, based on whose turn it is, if its already been marked
+        //as hit or missed or not. Then if its hit, play the correct sound effect, change the state of the cellbutton,
+        //increment the hitcount of the ship at that Board's ship list index. Then checks if all ships have been sunk,
+        //and if so shows which one and prompt a restart or exit. Also handles changing turns once you miss. Finally,
+        //handles salvo logic
         int row = cell.row;
         int col = cell.col;
 
@@ -739,6 +785,10 @@ public class Battleship extends JFrame {
 
     }
     private void markSurroundingCells(Board model, JPanel boardPanel, Ship ship) {
+
+        //Function will mark the surrounding cells around a ship, so when a ship is fully killed, you know what cells
+        //around it will also be misses, since ships cannot be placed next to each other. Also handles marking the cells
+        //so ships cant be placed next to each other.
         int size = SIZE;
         int row = ship.getStartRow();
         int col = ship.getStartCol();
@@ -780,7 +830,8 @@ public class Battleship extends JFrame {
     // ---------- TURN LOGIC ---------- \\
     private void endTurn(String message) {
 
-        //lock the boards and change ship visibility on both boards
+        //lock the boards and change ship visibility on both boards, starts the timer, and ends the players turn by
+        //calling to switch player turn.
         turnLocked = true;
         setBoardsEnabled(false);
         countdown = TURN_DELAY_SECONDS;
@@ -805,6 +856,8 @@ public class Battleship extends JFrame {
         countdownTimer.start();
     }
     private void switchPlayerTurn() {
+
+        //Flips the playerOnesTurn boolean, unlocks the turn and reenables the boards. sets up inital salvo user display
         playerOnesTurn = !playerOnesTurn;
         turnLocked = false;
         setBoardsEnabled(true);
@@ -826,6 +879,8 @@ public class Battleship extends JFrame {
         }
     }
     private void setBoardsEnabled(boolean enabled) {
+
+        //reenables all components of the two player board panels
         for (Component c : playerOnePanel.getComponents()) {
             c.setEnabled(enabled);
         }
@@ -838,6 +893,11 @@ public class Battleship extends JFrame {
         updatePrivacyEachTurn(playerOnePanel, playerOneBoard, false);
     }
     private void updatePrivacyEachTurn(JPanel playerBoard, Board model, boolean isLeftBoard) {
+
+        //Function handles updating the board when a player's turn it ended, so that their ships are hidden and the
+        //other players ships are shown, allowing for single screen two player game. Makes sure to keep all misses and
+        //hits visible to both players. Board logic holds the truth of all ship locations, cell buttons logic changes,
+        //depending on the turn.
         JPanel grid = getGridPanel(playerBoard);
         Component[] comps = grid.getComponents();
 

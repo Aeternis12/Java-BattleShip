@@ -39,6 +39,8 @@ public class CellButton extends JButton {
     // -------- VIEW LOGIC ------- \\
     @Override
     protected void paintComponent(Graphics g) {
+        //Function paints the CellButton, determining its color by the state of the Cell itself, which is based on the
+        //board logic
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g;

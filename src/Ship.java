@@ -31,11 +31,13 @@ public abstract class Ship {
 
     // ------ STATE TRACKING ------ \\
     public void placeShip(int row, int col, boolean horizontal) {
+        //Places ship at a grid location
         this.startRow = row;
         this.startCol = col;
         this.horizontal = horizontal;
     }
     public boolean occupiesGridLocation(int row, int col) {
+        //Function checks to see if a ship occupies a specific grid location
         if (startRow < 0 || startCol < 0){
             return false;
         }
@@ -47,6 +49,7 @@ public abstract class Ship {
         }
     }
     public boolean shipHasBeenHit (int row, int col) {
+        //Function sees if ship is at a location, then increments the hitcount is it is)
         if (!occupiesGridLocation(row, col)) {
             return false;
         }
