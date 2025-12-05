@@ -95,7 +95,6 @@ public class Board {
 
         return true;
     }
-
     public boolean placeShipOnBoard(Ship ship, int startRow, int startCol, boolean horizontal){
         int shipLength = ship.getLength();
 
@@ -120,7 +119,6 @@ public class Board {
 
         return true;
     }
-
     public void placeShipsRandomly(Ship[] fleet){
         int size = grid.length;
 

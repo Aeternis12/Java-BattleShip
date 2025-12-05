@@ -148,7 +148,6 @@ public class Battleship extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
     }
-
     private void initializeListeners(){
 
         carrierButton.addActionListener(e -> selectShipToPlace(Carrier.class));
@@ -908,9 +907,7 @@ public class Battleship extends JFrame {
            e.printStackTrace();
         }
     }
-
     private Clip backgroundClip;
-
     private void playBackgroundMusic(String fileName) {
         try {
             if(backgroundClip != null && backgroundClip.isRunning()) {
