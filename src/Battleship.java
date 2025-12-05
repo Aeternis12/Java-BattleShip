@@ -61,26 +61,15 @@ public class Battleship extends JFrame {
     }
     public Battleship() {
         setTitle("Battleship");
-        String[] options = {"Normal Mode", "Salvo Mode"};
-        int modeChoice = JOptionPane.showOptionDialog(
-            this,
-            "Choose a game mode: ",
-            "Select Game Mode",
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]
-        );
-
-        salvoMode = (modeChoice == 1);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initializeGameState();
         System.out.println("Fleet Created");
+
         initializeUserInterface();
         System.out.println("Boards Created");
         System.out.println("Panels Created");
+
         initializeListeners();
         System.out.println("Listeners Created");
 
@@ -104,6 +93,20 @@ public class Battleship extends JFrame {
         playerOnePlacing = true;
         currentShipIndex = 0;
         placeShipHorizontal = true;
+
+        String[] options = {"Normal Mode", "Salvo Mode"};
+        int modeChoice = JOptionPane.showOptionDialog(
+                this,
+                "Choose a game mode: ",
+                "Select Game Mode",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        salvoMode = (modeChoice == 1);
     }
     private void initializeUserInterface(){
 
