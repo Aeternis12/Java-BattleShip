@@ -436,7 +436,7 @@ public class Battleship extends JFrame {
             playerOnePlacing = false;
             currentShipIndex = 0;
             placeShipHorizontal = true;
-            JOptionPane.showMessageDialog(this, "Now Player 2's turn to place ships");
+            JOptionPane.showMessageDialog(this, "Now Player 1's turn to place ships");
             updateBoardPrivacy();
             updateShipButtonsEnabled();
         }
