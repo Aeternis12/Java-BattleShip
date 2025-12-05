@@ -2,13 +2,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 
 public class Battleship extends JFrame {
     private static final int SIZE = 10;
     private static final int CELL_SIZE = 40;
+    private Ship[] playerOneFleet;
+    private Ship[] playerTwoFleet;
 
     private boolean playerOnesTurn = true;
     private boolean turnLocked = false;
+    private boolean inShipPlacementPhase = true;
+    private boolean playerOnePlacing = true;
+    private int currentShipIndex = 0;
+    private boolean placeShipHorizontal = true;
 
     private final JPanel playerOnePanel;
     private final JPanel playerTwoPanel;
@@ -36,9 +45,16 @@ public class Battleship extends JFrame {
         playerTwoBoard = new Board(SIZE);
         System.out.println("Boards Created");
 
-        playerOneBoard.placeShipsRandomly();
-        playerTwoBoard.placeShipsRandomly();
-        System.out.println("Ships Placed Randomly");
+        playerOneFleet = createFleet();
+        playerTwoFleet = createFleet();
+        inShipPlacementPhase = true;
+        playerOnePlacing = true;
+        placeShipHorizontal = true;
+        currentShipIndex = 0;
+
+//        playerOneBoard.placeShipsRandomly();
+//        playerTwoBoard.placeShipsRandomly();
+//        System.out.println("Ships Placed Randomly");
 
         playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
         playerTwoPanel = createBoard(false, playerTwoBoard); // Player 2 clicks here
@@ -46,7 +62,7 @@ public class Battleship extends JFrame {
         mainPanel.add(playerTwoPanel);
         System.out.println("Panels Created");
 
-        turnLabel = new JLabel("Player 1's Turn", SwingConstants.CENTER);
+        turnLabel = new JLabel("BattleShip", SwingConstants.CENTER);
         turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
 
         add(turnLabel, BorderLayout.NORTH);
@@ -54,6 +70,7 @@ public class Battleship extends JFrame {
 
         pack(); // Sizes window based on button sizes
         setLocationRelativeTo(null);
+        updatePlacementLabel();
         updateBoardPrivacy();
         setVisible(true);
     }
@@ -63,7 +80,16 @@ public class Battleship extends JFrame {
     }
 
 
-    // ----------- BOARD CREATION AND CLICKING ---------- \\
+    // ----------- BOARD CREATION ---------- \\
+    private Ship[] createFleet(){
+        return new Ship[] {
+                new Carrier(),
+                new BattleshipShip(),
+                new Cruiser(),
+                new Cruiser(),
+                new Destroyer()
+        };
+    }
     private JPanel createGridPanel(boolean isLeftBoard, Board model){
         JPanel grid = new JPanel();
         grid.setLayout(new GridLayout(SIZE, SIZE));
@@ -82,6 +108,29 @@ public class Battleship extends JFrame {
 
 
             cell.addActionListener(e -> handleClickCell(cell, model));
+            cell.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    handleHover(cell, model, true);
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    handleHover(cell, model, false);
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if(!inShipPlacementPhase){
+                        return;
+                    }
+                    if(SwingUtilities.isRightMouseButton(e)){
+                        placeShipHorizontal = !placeShipHorizontal;
+                        JPanel gridPanel = (JPanel) cell.getParent();
+
+                    }
+
+                }
+            });
             grid.add(cell);
         }
         return grid;
@@ -120,10 +169,184 @@ public class Battleship extends JFrame {
         JPanel boardWithLabels = createBoardLabels(boardPanel);
         return boardWithLabels;
     }
+
+
+    // ---------- SHIP PLACEMENT LOGIC -------- \\
+    private void updatePlacementLabel(){
+        if(!inShipPlacementPhase){
+            if(playerOnesTurn){
+                turnLabel.setText("Player 1's Turn");
+            }
+            else{
+                turnLabel.setText("Player 2's Turn");
+            }
+            return;
+        }
+
+        Ship ship = getCurrentShip();
+        if(ship == null){
+            turnLabel.setText("Placing Ships");
+            return;
+        }
+
+        String playerText = playerOnePlacing ? "Player 1" : "Player 2";
+
+        turnLabel.setText(playerText + ": Place your " + ship.getName() + " (size " + ship.getLength() + ") - " +
+                        " Left Click to Place, Right Click to Rotate");
+    }
+    private void handlePlacementClick(CellButton cell, Board model){
+        if(playerOnePlacing && model != playerOneBoard){
+            return;
+        }
+        if(!playerOnePlacing && model == playerOneBoard){
+            return;
+        }
+        Ship ship = getCurrentShip();
+        if(ship == null){
+            return;
+        }
+
+        int row = cell.row;
+        int col = cell.col;
+
+        if(!model.canPlaceShip(row, col, ship.getLength(), placeShipHorizontal)) {
+            JOptionPane.showMessageDialog(this, "You can't place this ship");
+            return;
+        }
+        boolean placed = model.placeShipOnBoard(ship, row, col, placeShipHorizontal);
+        if(!placed){
+            return;
+        }
+
+        JPanel playerPanel = (model == playerOneBoard) ? playerOnePanel : playerTwoPanel;
+        JPanel grid = getGridPanel(playerPanel);
+
+        for(int i = 0; i < ship.getLength(); i++){
+            int r = placeShipHorizontal ? row: row + i;
+            int c = placeShipHorizontal ? col + i: col;
+
+            CellButton btn = getCellButtonAt(grid, r, c);
+            if(btn != null){
+                btn.setState(CellButton.ship);
+            }
+        }
+
+        clearPreviewForBoard(grid);
+        nextPlacement();
+    }
+    private void nextPlacement(){
+        Ship[] currentFleet = playerOnePlacing ?  playerOneFleet : playerTwoFleet;
+        currentShipIndex++;
+
+        if(currentShipIndex >= currentFleet.length){
+            if(playerOnePlacing){
+                playerOnePlacing = false;
+                currentShipIndex = 0;
+                placeShipHorizontal = true;
+                JOptionPane.showMessageDialog(this, "Now Player 2's turn to place ships");
+                updateBoardPrivacy();
+            }
+            else{
+                inShipPlacementPhase = false;
+                playerOnePlacing = true;
+                placeShipHorizontal = true;
+                JOptionPane.showMessageDialog(this, "All Ships Placed. Game Start");
+                updateBoardPrivacy();
+            }
+        }
+        updatePlacementLabel();
+
+    }
+    private void handleHover(CellButton cell, Board model, boolean entered){
+        if(!inShipPlacementPhase){
+            return;
+        }
+
+        if(playerOnePlacing && model != playerOneBoard){
+            return;
+        }
+        if(!playerOnePlacing && model == playerOneBoard){
+            return;
+        }
+
+        JPanel gridPanel = (JPanel) cell.getParent();
+        clearPreviewForBoard(gridPanel);
+        if(!entered) {
+            return;
+        }
+        showPreview(cell, model);
+    }
+    private void clearPreviewForBoard(JPanel gridPanel){
+        for(Component comp : gridPanel.getComponents()){
+            if(comp instanceof CellButton btn){
+                int state = btn.getState();
+                if(state == CellButton.hoverGood || state == CellButton.hoverBad){
+                    btn.setState(CellButton.none);
+                }
+            }
+        }
+    }
+    private void showPreview(CellButton cell, Board model){
+        Ship ship = getCurrentShip();
+        if(ship == null){
+            return;
+        }
+        int length = ship.getLength();
+        int row = cell.row;
+        int col = cell.col;
+
+        boolean canPlace = model.canPlaceShip(row, col, length, placeShipHorizontal);
+        JPanel gridPanel = (JPanel) cell.getParent();
+
+
+        for(int i = 0; i < length; i++){
+            int r = placeShipHorizontal ? row: row + i;
+            int c = placeShipHorizontal ? col + i: col;
+
+            if(r < 0 || c < 0 || r >= SIZE || c >= SIZE) {
+                continue;
+            }
+
+            CellButton btn = getCellButtonAt(gridPanel, r, c);
+            if(btn != null){
+                int existingState = btn.getState();
+                if(existingState == CellButton.ship){
+                    continue;
+                }
+                btn.setState(canPlace ? CellButton.hoverGood : CellButton.hoverBad);
+            }
+        }
+    }
+    private CellButton getCellButtonAt(JPanel grid, int row, int col){
+        int index = row * SIZE + col;
+        if(index < 0 || index >= grid.getComponentCount()) {
+            return null;
+        }
+        Component comp = grid.getComponent(index);
+        if(comp instanceof CellButton){
+            return (CellButton)comp;
+        }
+        return null;
+    }
+    private Ship getCurrentShip(){
+        Ship [] currentFleet = playerOnePlacing ?  playerOneFleet : playerTwoFleet;
+        if(currentShipIndex < 0 ||  currentShipIndex >= currentFleet.length){
+            return null;
+        }
+        return currentFleet[currentShipIndex];
+    }
+
+
+    // -------- CLICKING LOGIC DURING GAME -------- \\
     private void handleClickCell(CellButton cell, Board model){
 
         int row = cell.row;
         int col = cell.col;
+
+        if(inShipPlacementPhase){
+            handlePlacementClick(cell, model);
+            return;
+        }
 
         //If location has already been shot at, do nothing
         if(model.isHit(row, col))
