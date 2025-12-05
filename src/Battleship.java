@@ -7,28 +7,51 @@ import java.awt.event.MouseEvent;
 
 
 public class Battleship extends JFrame {
+
+    // ------ CELL VARIABLES ------ \\
     private static final int SIZE = 10;
     private static final int CELL_SIZE = 40;
+
+
+    // ------ FLEET STORAGE CONTROL ------ \\
     private Ship[] playerOneFleet;
     private Ship[] playerTwoFleet;
 
-    private boolean playerOnesTurn = true;
-    private boolean turnLocked = false;
+    private boolean[] playerOnePlacedShips;
+    private boolean[] playerTwoPlacedShips;
+
+
+    // ------ SHIP PLACEMENT VARIABLES ------ \\
     private boolean inShipPlacementPhase = true;
     private boolean playerOnePlacing = true;
     private int currentShipIndex = 0;
     private boolean placeShipHorizontal = true;
 
-    private final JPanel playerOnePanel;
-    private final JPanel playerTwoPanel;
 
-    private final Board playerOneBoard;
-    private final Board playerTwoBoard;
+    // ------- BOARD, PANEL AND BUTTONS ------- \\
+    private JPanel playerOnePanel;
+    private JPanel playerTwoPanel;
 
-    private final JLabel turnLabel;
+    private Board playerOneBoard;
+    private Board playerTwoBoard;
+
+    private JButton carrierButton;
+    private JButton battleshipButton;
+    private JButton cruiserButton;
+    private JButton destroyerButton;
+
+
+    // ------- TURN LOGIC VARIABLES -------- \\
+    private boolean playerOnesTurn = true;
+    private boolean turnLocked = false;
+    private JLabel turnLabel;
     private Timer countdownTimer;
     private int countdown;
     private static int TURN_DELAY_SECONDS = 1;
+
+
+    //----------------------------------------------------------------------------------------------------------------\\
+
 
     // --------- MAIN GAME ITSELF ------- \\
     public static void main(String[] args) {
@@ -38,41 +61,116 @@ public class Battleship extends JFrame {
         setTitle("Battleship");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayout(1, 2, 40, 0));
-
-        playerOneBoard = new Board(SIZE);
-        playerTwoBoard = new Board(SIZE);
+        initializeGameState();
+        System.out.println("Fleet Created");
+        initializeUserInterface();
         System.out.println("Boards Created");
-
-        playerOneFleet = createFleet();
-        playerTwoFleet = createFleet();
-        inShipPlacementPhase = true;
-        playerOnePlacing = true;
-        placeShipHorizontal = true;
-        currentShipIndex = 0;
-
-//        playerOneBoard.placeShipsRandomly();
-//        playerTwoBoard.placeShipsRandomly();
-//        System.out.println("Ships Placed Randomly");
-
-        playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
-        playerTwoPanel = createBoard(false, playerTwoBoard); // Player 2 clicks here
-        mainPanel.add(playerOnePanel);
-        mainPanel.add(playerTwoPanel);
         System.out.println("Panels Created");
-
-        turnLabel = new JLabel("BattleShip", SwingConstants.CENTER);
-        turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
-
-        add(turnLabel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
+        initializeListeners();
+        System.out.println("Listeners Created");
 
         pack(); // Sizes window based on button sizes
         setLocationRelativeTo(null);
         updatePlacementLabel();
+        updateShipButtonsEnabled();
         updateBoardPrivacy();
         setVisible(true);
+    }
+    private void initializeGameState(){
+        playerOneBoard = new Board(SIZE);
+        playerTwoBoard = new Board(SIZE);
+
+        playerOneFleet = createFleet();
+        playerTwoFleet = createFleet();
+        playerOnePlacedShips = new boolean[playerOneFleet.length];
+        playerTwoPlacedShips = new boolean[playerTwoFleet.length];
+
+        inShipPlacementPhase = true;
+        playerOnePlacing = true;
+        currentShipIndex = 0;
+        placeShipHorizontal = true;
+    }
+    private void initializeUserInterface(){
+
+        turnLabel = new JLabel("BattleShip", SwingConstants.CENTER);
+        turnLabel.setFont(new Font("Serif", Font.BOLD, 18));
+
+        JPanel topBar = new JPanel(new BorderLayout());
+        topBar.add(turnLabel, BorderLayout.CENTER);
+
+        JPanel shipButtonsPanel = new JPanel();
+        carrierButton = new JButton("Carrier");
+        battleshipButton = new JButton("Battleship");
+        cruiserButton = new JButton("Cruiser");
+        destroyerButton = new JButton("Destroyer");
+
+        shipButtonsPanel.add(carrierButton);
+        shipButtonsPanel.add(battleshipButton);
+        shipButtonsPanel.add(cruiserButton);
+        shipButtonsPanel.add(destroyerButton);
+
+        topBar.add(shipButtonsPanel, BorderLayout.SOUTH);
+        add(topBar, BorderLayout.NORTH);
+
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2,40,0));
+
+        playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
+        playerTwoPanel = createBoard(false, playerTwoBoard); // Player 2 clicks here
+
+        mainPanel.add(playerOnePanel);
+        mainPanel.add(playerTwoPanel);
+
+        add(mainPanel, BorderLayout.CENTER);
+    }
+    private void initializeListeners(){
+
+        carrierButton.addActionListener(e -> selectShipToPlace(Carrier.class));
+        battleshipButton.addActionListener(e -> selectShipToPlace(BattleshipShip.class));
+        cruiserButton.addActionListener(e -> selectShipToPlace(Cruiser.class));
+        destroyerButton.addActionListener(e -> selectShipToPlace(Destroyer.class));
+
+        initializeCellListenersForBoard(playerOnePanel, playerOneBoard);
+        initializeCellListenersForBoard(playerTwoPanel, playerTwoBoard);
+
+
+    }
+    private void initializeCellListenersForBoard(JPanel boardPanel, Board model){
+        JPanel grid = getGridPanel(boardPanel);
+
+        for(Component comp: grid.getComponents()){
+
+            if(!(comp instanceof CellButton cell)){
+                continue;
+            }
+
+            //Left CLick
+            cell.addActionListener(e -> handleClickCell(cell, model));
+
+            //Right Click + Hover
+            cell.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    handleHover(cell, model, true);
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    handleHover(cell, model, false);
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if(!inShipPlacementPhase){
+                        return;
+                    }
+                    if(SwingUtilities.isRightMouseButton(e)){
+                        placeShipHorizontal = !placeShipHorizontal;
+                        JPanel gridPanel = (JPanel) cell.getParent();
+
+                    }
+
+                }
+            });
+        }
     }
     private void restartGame() {
         this.dispose();
@@ -106,31 +204,6 @@ public class Battleship extends JFrame {
             cell.setOpaque(true);
             cell.setFocusPainted(false);
 
-
-            cell.addActionListener(e -> handleClickCell(cell, model));
-            cell.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    handleHover(cell, model, true);
-                }
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    handleHover(cell, model, false);
-                }
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    if(!inShipPlacementPhase){
-                        return;
-                    }
-                    if(SwingUtilities.isRightMouseButton(e)){
-                        placeShipHorizontal = !placeShipHorizontal;
-                        JPanel gridPanel = (JPanel) cell.getParent();
-
-                    }
-
-                }
-            });
             grid.add(cell);
         }
         return grid;
@@ -172,6 +245,72 @@ public class Battleship extends JFrame {
 
 
     // ---------- SHIP PLACEMENT LOGIC -------- \\
+    private void selectShipToPlace(Class<? extends Ship> shipClass){
+        if(!inShipPlacementPhase){
+            return;
+        }
+
+        Ship[] fleet = playerOnePlacing ? playerOneFleet : playerTwoFleet;
+        boolean[] placedShips = playerOnePlacing ? playerOnePlacedShips : playerTwoPlacedShips;
+
+        if(fleet == null){
+            return;
+        }
+
+        for(int i = 0; i < fleet.length; i++){
+            if(!placedShips[i] && shipClass.isInstance(fleet[i])){
+                currentShipIndex = i;
+                updatePlacementLabel();
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(this, "All " + shipClass.getSimpleName() +
+                "s are already placed.", "No ships left", JOptionPane.INFORMATION_MESSAGE );
+    }
+    private void updateShipButtonsEnabled() {
+        boolean carrierLeft = false;
+        boolean battleshipLeft = false;
+        boolean cruiserLeft = false;
+        boolean destroyerLeft = false;
+
+        if(inShipPlacementPhase){
+            Ship[] fleet = playerOnePlacing ? playerOneFleet : playerTwoFleet;
+            boolean[] placedShips = playerOnePlacing ? playerOnePlacedShips : playerTwoPlacedShips;
+
+            if(fleet != null && placedShips != null){
+                for(int i = 0; i < fleet.length; i++){
+                    if(placedShips[i]){
+                        continue;
+                    }
+                    Ship ship = fleet[i];
+                    if(ship instanceof Carrier){
+                        carrierLeft = true;
+                    } else if (ship instanceof BattleshipShip) {
+                        battleshipLeft = true;
+                    }
+                    else if(ship instanceof Cruiser){
+                        cruiserLeft = true;
+                    }
+                    else if(ship instanceof Destroyer){
+                        destroyerLeft = true;
+                    }
+                }
+            }
+        }
+        if(carrierButton != null){
+            carrierButton.setEnabled(carrierLeft);
+        }
+        if(battleshipButton != null){
+            battleshipButton.setEnabled(battleshipLeft);
+        }
+        if(cruiserButton != null){
+            cruiserButton.setEnabled(cruiserLeft);
+        }
+        if(destroyerButton != null){
+            destroyerButton.setEnabled(destroyerLeft);
+        }
+    }
     private void updatePlacementLabel(){
         if(!inShipPlacementPhase){
             if(playerOnesTurn){
@@ -231,29 +370,64 @@ public class Battleship extends JFrame {
             }
         }
 
+        boolean[] placedShips = playerOnePlacing ? playerOnePlacedShips : playerTwoPlacedShips;
+        placedShips[currentShipIndex] = true;
+        updatePlacementLabel();
+
         clearPreviewForBoard(grid);
         nextPlacement();
     }
     private void nextPlacement(){
         Ship[] currentFleet = playerOnePlacing ?  playerOneFleet : playerTwoFleet;
-        currentShipIndex++;
+        boolean[] placedShips = playerOnePlacing ? playerOnePlacedShips : playerTwoPlacedShips;
 
-        if(currentShipIndex >= currentFleet.length){
-            if(playerOnePlacing){
-                playerOnePlacing = false;
-                currentShipIndex = 0;
-                placeShipHorizontal = true;
-                JOptionPane.showMessageDialog(this, "Now Player 2's turn to place ships");
-                updateBoardPrivacy();
-            }
-            else{
-                inShipPlacementPhase = false;
-                playerOnePlacing = true;
-                placeShipHorizontal = true;
-                JOptionPane.showMessageDialog(this, "All Ships Placed. Game Start");
-                updateBoardPrivacy();
+        boolean shipsLeftToPlace = false;
+        int firstUnplacedShipIndex = -1;
+        if(currentFleet != null && placedShips != null){
+            for(int i = 0; i < currentFleet.length; i++){
+                if(!placedShips[i]){
+                    shipsLeftToPlace = true;
+                    firstUnplacedShipIndex = i;
+                }
             }
         }
+
+        if(shipsLeftToPlace){
+            currentShipIndex = firstUnplacedShipIndex;
+            updatePlacementLabel();
+            updateShipButtonsEnabled();
+            return;
+        }
+
+        if(playerOnePlacing){
+            playerOnePlacing = false;
+            currentShipIndex = 0;
+            placeShipHorizontal = true;
+            JOptionPane.showMessageDialog(this, "Now Player 2's turn to place ships");
+            updateBoardPrivacy();
+            updateShipButtonsEnabled();
+        }
+        else{
+            inShipPlacementPhase = false;
+            playerOnePlacing = true;
+            placeShipHorizontal = true;
+
+            if(carrierButton != null){
+                carrierButton.setEnabled(false);
+            }
+            if(battleshipButton != null){
+                battleshipButton.setEnabled(false);
+            }
+            if(cruiserButton != null){
+                cruiserButton.setEnabled(false);
+            }
+            if(destroyerButton != null){
+                destroyerButton.setEnabled(false);
+            }
+            JOptionPane.showMessageDialog(this, "All Ships Placed. Game Start");
+
+        }
+        updateBoardPrivacy();
         updatePlacementLabel();
 
     }
@@ -456,6 +630,7 @@ public class Battleship extends JFrame {
             }
         }
     }
+
 
     // ---------- TURN LOGIC ---------- \\
     private void endTurn(String message) {
