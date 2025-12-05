@@ -1,3 +1,6 @@
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -78,6 +81,7 @@ public class Battleship extends JFrame {
         updatePlacementLabel();
         updateShipButtonsEnabled();
         updateBoardPrivacy();
+        playBackgroundMusic("background.wav");
         setVisible(true);
     }
     private void initializeGameState(){
@@ -194,6 +198,10 @@ public class Battleship extends JFrame {
         }
     }
     private void restartGame() {
+        if(backgroundClip != null){
+            backgroundClip.stop();
+            backgroundClip.close();
+        }
         this.dispose();
         new Battleship();
     }
@@ -824,6 +832,28 @@ public class Battleship extends JFrame {
         } 
         catch (Exception e) {
            e.printStackTrace();
+        }
+    }
+
+    private Clip backgroundClip;
+
+    private void playBackgroundMusic(String fileName) {
+        try {
+            if(backgroundClip != null && backgroundClip.isRunning()) {
+              backgroundClip.stop();
+                backgroundClip.close();
+            }
+
+            java.net.URL url = getClass().getResource(fileName);
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(audioIn);
+            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY);
+            backgroundClip.start();
+        } 
+        catch(Exception e) {
+            e.printStackTrace();
         }
     }
 }
