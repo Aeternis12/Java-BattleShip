@@ -26,6 +26,8 @@ public class Battleship extends JFrame {
     private boolean playerOnePlacing = true;
     private int currentShipIndex = 0;
     private boolean placeShipHorizontal = true;
+    private boolean salvoMode = false;
+    private int shotsRemaining = 1;
 
 
     // ------- BOARD, PANEL AND BUTTONS ------- \\
@@ -59,6 +61,19 @@ public class Battleship extends JFrame {
     }
     public Battleship() {
         setTitle("Battleship");
+        String[] options = {"Normal Mode", "Salvo Mode"};
+        int modeChoice = JOptionPane.showOptionDialog(
+            this,
+            "Choose a game mode: ",
+            "Select Game Mode",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        salvoMode = (modeChoice == 1);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initializeGameState();
@@ -313,11 +328,15 @@ public class Battleship extends JFrame {
     }
     private void updatePlacementLabel(){
         if(!inShipPlacementPhase){
-            if(playerOnesTurn){
-                turnLabel.setText("Player 1's Turn");
+            if(salvoMode) {
+                String player = playerOnesTurn ? "Player 1" : "Player 2";
+                turnLabel.setText(player + "'s Turn - Salvo: " + shotsRemaining + " Shots Remaining!");
             }
-            else{
-                turnLabel.setText("Player 2's Turn");
+            else {
+                if(playerOnesTurn)
+                    turnLabel.setText("Player 1's Turn");
+                else
+                    turnLabel.setText("Player 2's Turn");
             }
             return;
         }
@@ -328,7 +347,7 @@ public class Battleship extends JFrame {
             return;
         }
 
-        String playerText = playerOnePlacing ? "Player 1" : "Player 2";
+        String playerText = playerOnePlacing ? "Player 2" : "Player 1";
 
         turnLabel.setText(playerText + ": Place your " + ship.getName() + " (size " + ship.getLength() + ") - " +
                         " Left Click to Place, Right Click to Rotate");
@@ -569,9 +588,31 @@ public class Battleship extends JFrame {
 
 
             //keep turn if hit ship
-            turnLabel.setText(
+            /* turnLabel.setText(
                     " Hit! Shoot again!"
-            );
+            ); */
+            if(!salvoMode)
+                turnLabel.setText("Hit! Shoot Again!");
+            else {
+                shotsRemaining--;
+                if(hitShip.isSunk()) {
+                    turnLabel.setText("You Sank My " + hitShip.getName() + "!");
+                    if(cell.isLeftBoard)
+                        markSurroundingCells(model, playerOnePanel, hitShip);
+                    else
+                        markSurroundingCells(model, playerTwoPanel, hitShip);
+                }
+
+                if(shotsRemaining <= 0) {
+                    endTurn("Salvo Turn Over! ");
+                    return;
+                }
+                else {
+                    String player = playerOnesTurn ? "Player 1" : "Player 2";
+                    turnLabel.setText(player + "'s Turn - Salvo: " + shotsRemaining + " shots left!");
+                }
+                
+            }
 
             //display message when ship is sank
             if(hitShip.isSunk()) {
@@ -587,11 +628,26 @@ public class Battleship extends JFrame {
             return;
         }
 
-        //miss case
+        //normal miss case
         model.markMiss(row, col);
         cell.setState(CellButton.miss);
         updateBoardPrivacy();
-        endTurn("You Missed! ");
+        if(!salvoMode) {
+            endTurn("You Missed! ");
+            return;
+        }
+
+        //salvo miss case
+        shotsRemaining--;
+        if(shotsRemaining <= 0) {
+            endTurn("Salvo turn over! ");
+        }
+        else {
+            String player = playerOnesTurn ? "Player 1" : "Player 2";
+            turnLabel.setText(player + "'s Turn - Salvo: " + shotsRemaining + " shots left!");
+        }
+        return;
+
     }
     private void markSurroundingCells(Board model, JPanel boardPanel, Ship ship) {
         int size = SIZE;
@@ -664,12 +720,20 @@ public class Battleship extends JFrame {
         turnLocked = false;
         setBoardsEnabled(true);
         updateBoardPrivacy();
+        if(salvoMode) {
+            Board enemyBoard = playerOnesTurn ? playerTwoBoard : playerOneBoard;
+            shotsRemaining = enemyBoard.getUnsunkCount();
+        }
 
-        if(playerOnesTurn) {
-            turnLabel.setText("Player 1's Turn");
+        if(salvoMode) {
+            String player = playerOnesTurn ? "Player 1" : "Player 2";
+            turnLabel.setText(player + "'s Turn - Salvo: " + shotsRemaining + " shots Remaining!");
         }
         else {
-            turnLabel.setText("Player 2's Turn");
+            if(playerOnesTurn)
+                turnLabel.setText("Player 1's Turn");
+            else
+                turnLabel.setText("Player 2's Turn");
         }
     }
     private void setBoardsEnabled(boolean enabled) {

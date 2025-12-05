@@ -95,6 +95,7 @@ public class Board {
 
         return true;
     }
+
     public boolean placeShipOnBoard(Ship ship, int startRow, int startCol, boolean horizontal){
         int shipLength = ship.getLength();
 
@@ -119,6 +120,7 @@ public class Board {
 
         return true;
     }
+
     public void placeShipsRandomly(){
         Ship[] fleet = {
                 new Carrier(),
@@ -140,6 +142,16 @@ public class Board {
                 placed = placeShipOnBoard(ship, row, col, horizontal);
             }
         }
+    }
+
+    // -------- SALVO MODE ------------ \\
+    public int getUnsunkCount() {
+        int count = 0;
+        for(Ship s : ships) {
+            if(!s.isSunk())
+                count++;
+        }
+        return count;
     }
 
 }
