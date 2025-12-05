@@ -184,6 +184,9 @@ public class Battleship extends JFrame {
                         placeShipHorizontal = !placeShipHorizontal;
                         JPanel gridPanel = (JPanel) cell.getParent();
 
+                        clearPreviewForBoard(gridPanel);
+                        showPreview(cell,model);
+                        updateShipButtonsEnabled();
                     }
 
                 }
