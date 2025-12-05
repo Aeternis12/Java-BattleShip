@@ -189,7 +189,7 @@ public class Battleship extends JFrame {
             return;
         }
 
-        String playerText = playerOnePlacing ? "Player 1" : "Player 2";
+        String playerText = playerOnePlacing ? "Player 2" : "Player 1";
 
         turnLabel.setText(playerText + ": Place your " + ship.getName() + " (size " + ship.getLength() + ") - " +
                         " Left Click to Place, Right Click to Rotate");
