@@ -121,24 +121,21 @@ public class Board {
         return true;
     }
 
-    public void placeShipsRandomly(){
-        Ship[] fleet = {
-                new Carrier(),
-                new BattleshipShip(),
-                new Cruiser(),
-                new Cruiser(),  //added a second Cruiser because original battleship has 2 3long ships
-                new Destroyer(),
-        };
-
+    public void placeShipsRandomly(Ship[] fleet){
         int size = grid.length;
 
-        for (Ship ship : fleet){
+        for (Ship ship : fleet) {
+            int length = ship.getLength();
             boolean placed = false;
-            while(!placed){
+
+            while (!placed) {
                 boolean horizontal = Math.random() < 0.5;
                 int row = (int) (Math.random() * size);
                 int col = (int) (Math.random() * size);
 
+                if (!canPlaceShip(row, col, length, horizontal)) {
+                    continue;
+                }
                 placed = placeShipOnBoard(ship, row, col, horizontal);
             }
         }

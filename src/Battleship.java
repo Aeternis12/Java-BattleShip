@@ -41,6 +41,7 @@ public class Battleship extends JFrame {
     private JButton battleshipButton;
     private JButton cruiserButton;
     private JButton destroyerButton;
+    private JButton randomShipPlacementButton;
 
 
     // ------- TURN LOGIC VARIABLES -------- \\
@@ -130,6 +131,9 @@ public class Battleship extends JFrame {
         topBar.add(shipButtonsPanel, BorderLayout.SOUTH);
         add(topBar, BorderLayout.NORTH);
 
+        randomShipPlacementButton = new JButton("Place All Ships Randomly");
+        shipButtonsPanel.add(randomShipPlacementButton, BorderLayout.SOUTH);
+
         JPanel mainPanel = new JPanel(new GridLayout(1, 2,40,0));
 
         playerOnePanel = createBoard(true, playerOneBoard); // Player 1 clicks here
@@ -140,12 +144,14 @@ public class Battleship extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
     }
+
     private void initializeListeners(){
 
         carrierButton.addActionListener(e -> selectShipToPlace(Carrier.class));
         battleshipButton.addActionListener(e -> selectShipToPlace(BattleshipShip.class));
         cruiserButton.addActionListener(e -> selectShipToPlace(Cruiser.class));
         destroyerButton.addActionListener(e -> selectShipToPlace(Destroyer.class));
+        randomShipPlacementButton.addActionListener(e -> placeAllShipsRandomlyForCurrentPlayer());
 
         initializeCellListenersForBoard(playerOnePanel, playerOneBoard);
         initializeCellListenersForBoard(playerTwoPanel, playerTwoBoard);
@@ -289,11 +295,66 @@ public class Battleship extends JFrame {
         JOptionPane.showMessageDialog(this, "All " + shipClass.getSimpleName() +
                 "s are already placed.", "No ships left", JOptionPane.INFORMATION_MESSAGE );
     }
+    private void placeAllShipsRandomlyForCurrentPlayer(){
+        if(!inShipPlacementPhase){
+            return;
+        }
+        Board model = playerOnePlacing ? playerOneBoard : playerTwoBoard;
+        JPanel playerPanel = playerOnePlacing ? playerOnePanel : playerTwoPanel;
+        Ship[] fleet = playerOnePlacing ? playerOneFleet : playerTwoFleet;
+        boolean[] placedShips = playerOnePlacing ?  playerOnePlacedShips : playerTwoPlacedShips;
+
+        for (boolean placed : placedShips) {
+            if (placed) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Random placement is only available before placing any ships.",
+                        "Cannot Randomize",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                return;
+            }
+        }
+
+        model.placeShipsRandomly(fleet);
+        for(int i = 0; i < placedShips.length; i++){
+            placedShips[i] = true;
+        }
+
+        JPanel grid = getGridPanel(playerPanel);
+        Component[] comps = grid.getComponents();
+        for (int i = 0; i < comps.length; i++) {
+            if (!(comps[i] instanceof CellButton btn)) continue;
+
+            int row = i / SIZE;
+            int col = i % SIZE;
+
+            // Show ships directly from the model
+            if (model.isShip(row, col)) {
+                btn.setState(CellButton.ship);
+            } else {
+                int cellVal = model.getCell(row, col);
+                if (cellVal == Board.HIT) {
+                    btn.setState(CellButton.hit);
+                } else if (cellVal == Board.MISS) {
+                    btn.setState(CellButton.miss);
+                } else {
+                    btn.setState(CellButton.none);
+                }
+            }
+        }
+        clearPreviewForBoard(grid);
+        updateShipButtonsEnabled();
+        nextPlacement();
+    }
     private void updateShipButtonsEnabled() {
         boolean carrierLeft = false;
         boolean battleshipLeft = false;
         boolean cruiserLeft = false;
         boolean destroyerLeft = false;
+
+        boolean anyShipsPlaced = false;
+        boolean anyShipsUnplaced = false;
 
         if(inShipPlacementPhase){
             Ship[] fleet = playerOnePlacing ? playerOneFleet : playerTwoFleet;
@@ -301,10 +362,14 @@ public class Battleship extends JFrame {
 
             if(fleet != null && placedShips != null){
                 for(int i = 0; i < fleet.length; i++){
+                    Ship ship = fleet[i];
+
                     if(placedShips[i]){
+                        anyShipsPlaced = true;
                         continue;
                     }
-                    Ship ship = fleet[i];
+                    anyShipsUnplaced = true;
+
                     if(ship instanceof Carrier){
                         carrierLeft = true;
                     } else if (ship instanceof BattleshipShip) {
@@ -330,6 +395,10 @@ public class Battleship extends JFrame {
         }
         if(destroyerButton != null){
             destroyerButton.setEnabled(destroyerLeft);
+        }
+        if(randomShipPlacementButton != null) {
+            boolean canPlaceRandom = inShipPlacementPhase && !anyShipsPlaced && anyShipsUnplaced;
+            randomShipPlacementButton.setEnabled(canPlaceRandom);
         }
     }
     private void updatePlacementLabel(){
