@@ -809,8 +809,8 @@ public class Battleship extends JFrame {
                 .getLayoutComponent(BorderLayout.CENTER);
     }
 
-    //--------SOUND FX----------//
 
+    //--------SOUND FX----------//
     private void playSound(String fileName) {
         try {
             java.net.URL url = getClass().getResource(fileName);
