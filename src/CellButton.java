@@ -9,6 +9,9 @@ public class CellButton extends JButton {
     public static final int ship = 3;
     public static final int hidden = 4;
 
+    public static final int hoverGood = 5;
+    public static final int hoverBad = 6;
+
     public final int row;
     public final int col;
     public final boolean isLeftBoard;
@@ -58,6 +61,14 @@ public class CellButton extends JButton {
         }
         else if(state == hidden) {
             g2.setColor(new Color(126, 204, 241));
+            g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
+        }
+        else if(state == hoverGood) {
+            g2.setColor(new Color(0,200,0));
+            g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
+        }
+        else if(state == hoverBad) {
+            g2.setColor(new Color(200,0,0));
             g2.fillRect(4, 4, getWidth() - 8, getHeight() - 8);
         }
     }
