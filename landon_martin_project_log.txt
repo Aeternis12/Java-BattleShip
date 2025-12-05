@@ -1,0 +1,61 @@
+Landon Martin
+COP3252
+Advanced Java Programming
+Term Project Commit Log
+-------------------------------------------------
+
+
+November 4:
+    - created github and invited group mate to it. It took him a few weeks to join, but it all worked out.
+
+
+December 1:
+    - Fixed the .gitignore file from additions that were accidentally pushed to the github, including the .iml, .class
+      files.
+    - added the src folder and reorganized all the existing .java files into it.
+    - Added board class functionality, with tracking each grid location's state within the board
+    - Added CellButton class and functionality. This sorta represents the view part of rudimentary MVC practice.
+      CellButton has its own state, similar to that of the Board class grid locations, and stores if its a member of the
+      left board or right board (Player 2 or 1 respectively). Each CellButton is connected to the board within the
+      Battleship class, and changes color depending on state.
+    - Additionally added large logic restructuring on Battleship.java, to make sure it worked well with CellButton and
+      Board classes.
+
+December 2:
+    - Added an abstract Ship class, which contains its name, length, if its horizontal or not, and its starting row and
+      column. Also has a placeShip function which sets its member data to the passed through variables. Added occupies
+      grid location function to see if a ship is at a certain row and column. Ship class also keeps track of how many
+      hits a ship has received and if its as much as its length.
+    - Added all 4 subclasses to the Ship class, including Cruiser, Carrier, BattleshipShip and Destroyer. Each has its
+      own constructor, which passed through the length and name.
+    - Added the Ship class and its subclass functionality to the board, making a board have and ArrayList of ships and
+      tracking their grid locations.
+    - Added random ship placement. This was done before manual to see if we could simply get the ships to show up on the
+      board in the first place, and track if they have been hit. This is done through logic determining if a ship can be
+      placed on a range of grid locations, then another function to actually place the ship.
+    - Added the letters and numbers next to each player's board, corresponding to grid locations. This was done by
+      creating two additional panels, one with numbers and one with letters, and then adding those and the board panel
+      to a larger panel container.
+
+December 3:
+    - Undertook large restructuring of the Battleship.java class, cleaning up and modularizing much of the code, making
+      it way easier to read and understand. Many functions were very long and unwieldy, doing numerous tasks, so I
+      separated them into multiple functions.
+    - Also reorganized the layout of the functions and member data, adding comments to properly label what sections of
+      functions were.
+
+December 4:
+    - Added initially rudimentary ship placement, allowing players to place their own ships. This included a hovering
+      feature, where you can see where the ship is going to be placed. The grid locations where the ship is hovering
+      would be green if you could place the ship there and red if you could not. Added all the logic and functionality
+      that came along with placing ships.
+    - Added the ability to rotate which direction the ship would be placed, horizontal or vertical.
+    - Added the ability to cycle through which ships you could place. Done by adding buttons to the top of the panel,
+      clicking the button changes which ship you are selecting to place down. Added the button logic and disabling the
+      buttons if you already placed the maximum amount of that ship
+    - Modularized the constructor of the Battleship class, putting each section - game state, user interface, the
+      listeners, etc - into their own function so that the Battleship constructor is nice and simple.
+    - Finally, re-integrated random placement back in, through a button a user can click when its their turn to place
+      ships and they haven't placed any ships yet. If they place a ship manually, the button is disabled. Places ships
+      randomly using the same logic as the random placement before, but had to reconnect it through a new function to
+      the CellButtons and such.
