@@ -564,6 +564,7 @@ public class Battleship extends JFrame {
         if(model.isShip(row, col)) {
             model.markHit(row, col);
             cell.setState(CellButton.hit);
+            playSound("hit.wav");
 
             //what kind of ship got hit
             Ship hitShip = model.getShipAt(row, col);
@@ -634,6 +635,7 @@ public class Battleship extends JFrame {
         //normal miss case
         model.markMiss(row, col);
         cell.setState(CellButton.miss);
+        playSound("miss.wav");
         updateBoardPrivacy();
         if(!salvoMode) {
             endTurn("You Missed! ");
@@ -807,7 +809,18 @@ public class Battleship extends JFrame {
                 .getLayoutComponent(BorderLayout.CENTER);
     }
 
+    //--------SOUND FX----------//
 
-
-
+    private void playSound(String fileName) {
+        try {
+            java.net.URL url = getClass().getResource(fileName);
+            javax.sound.sampled.AudioInputStream audioIn = javax.sound.sampled.AudioSystem.getAudioInputStream(url);
+            javax.sound.sampled.Clip clip = javax.sound.sampled.AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } 
+        catch (Exception e) {
+           e.printStackTrace();
+        }
+    }
 }
